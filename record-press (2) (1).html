@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Record Press — Lab Record Generator</title>
+<style>
+  :root{
+    --bench-bg:#14171c;
+    --bench-panel:#1b1f26;
+    --bench-line:#2a2f38;
+    --bench-text:#d7dae0;
+    --bench-dim:#8b93a1;
+    --accent:#ff8a3d;
+    --accent-dim:#9a5326;
+    --paper:#fdfdfa;
+    --ink:#1a1a1a;
+    --rule:#2a2a2a;
+    --success:#2f7d4f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bench-bg);
+    color:var(--bench-text);
+    font-family:'IBM Plex Mono','JetBrains Mono',ui-monospace,Consolas,monospace;
+    display:flex;
+    min-height:100vh;
+  }
+
+  /* ---------- LEFT: WORKBENCH ---------- */
+  .bench{
+    width:420px;
+    min-width:340px;
+    max-width:460px;
+    background:var(--bench-panel);
+    border-right:1px solid var(--bench-line);
+    padding:22px 22px 60px;
+    overflow-y:auto;
+    height:100vh;
+  }
+  .bench h1{
+    font-size:15px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 2px;
+  }
+  .bench .tag{
+    font-size:11px;
+    color:var(--bench-dim);
+    margin:0 0 22px;
+    line-height:1.5;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--bench-dim);
+    margin-bottom:6px;
+  }
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;
+    background:#0f1216;
+    border:1px solid var(--bench-line);
+    color:var(--bench-text);
+    padding:9px 10px;
+    font-family:inherit;
+    font-size:12.5px;
+    border-radius:3px;
+    resize:vertical;
+  }
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--bench-dim) 50%), linear-gradient(135deg, var(--bench-dim) 50%, transparent 50%);
+    background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat:no-repeat;
+    cursor:pointer;
+  }
+  input:focus,textarea:focus,select:focus{
+    outline:none;
+    border-color:var(--accent-dim);
+  }
+  textarea{min-height:70px;line-height:1.5;}
+  textarea.code{min-height:150px;}
+  .hint{font-size:10px;color:var(--bench-dim);margin-top:5px;line-height:1.4;}
+
+  .toggle{
+    display:flex;
+    border:1px solid var(--bench-line);
+    border-radius:3px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .toggle button{
+    flex:1;
+    background:#0f1216;
+    color:var(--bench-dim);
+    border:none;
+    padding:7px 6px;
+    font-family:inherit;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    cursor:pointer;
+  }
+  .toggle button.active{
+    background:var(--accent-dim);
+    color:#fff;
+  }
+
+  .divider{
+    border:none;
+    border-top:1px dashed var(--bench-line);
+    margin:22px 0 18px;
+  }
+  .section-label{
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:#fff;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-label::before{
+    content:'';
+    width:6px;height:6px;
+    background:var(--accent);
+    display:inline-block;
+    border-radius:1px;
+    transform:rotate(45deg);
+  }
+
+  .out-block{
+    border:1px solid var(--bench-line);
+    border-radius:4px;
+    padding:12px;
+    margin-bottom:12px;
+    position:relative;
+  }
+  .out-block .remove{
+    position:absolute;
+    top:8px;right:8px;
+    background:none;
+    border:none;
+    color:var(--bench-dim);
+    cursor:pointer;
+    font-size:14px;
+  }
+  .out-block .remove:hover{color:#e05a4e;}
+  .checkline{
+    display:flex;align-items:center;gap:7px;
+    font-size:10.5px;color:var(--bench-dim);
+    margin-top:8px;
+  }
+  .checkline input{width:auto;}
+
+  .addbtn{
+    width:100%;
+    background:none;
+    border:1px dashed var(--bench-line);
+    color:var(--bench-dim);
+    padding:9px;
+    border-radius:3px;
+    font-family:inherit;
+    font-size:11px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .addbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
+
+  /* photo upload thumbs */
+  input[type=file]{
+    width:100%;
+    background:#0f1216;
+    border:1px solid var(--bench-line);
+    color:var(--bench-dim);
+    padding:8px 10px;
+    font-family:inherit;
+    font-size:11px;
+    border-radius:3px;
+  }
+  .photo-thumbs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:8px;
+  }
+  .thumb{
+    position:relative;
+    width:56px;height:56px;
+    border:1px solid var(--bench-line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb-remove{
+    position:absolute;
+    top:0;right:0;
+    background:rgba(0,0,0,.65);
+    color:#fff;
+    border:none;
+    width:16px;height:16px;
+    font-size:10px;
+    line-height:16px;
+    padding:0;
+    cursor:pointer;
+  }
+
+  .printbar{
+    position:sticky;
+    bottom:-60px;
+    margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid var(--bench-line);
+  }
+  .printbtn{
+    width:100%;
+    background:var(--accent);
+    color:#1a1108;
+    border:none;
+    padding:13px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .printbtn:hover{background:#ffa565;}
+  .printbtn.docbtn{
+    background:#2b3a52;
+    color:#dbe6ff;
+    margin-top:8px;
+  }
+  .printbtn.docbtn:hover{background:#37496a;}
+  .printhint{font-size:10px;color:var(--bench-dim);margin-top:8px;line-height:1.5;}
+
+  /* ---------- RIGHT: PRESS / PREVIEW ---------- */
+  .press{
+    flex:1;
+    height:100vh;
+    overflow-y:auto;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 40px),
+      var(--bench-bg);
+    padding:40px 0 90px;
+    display:flex;
+    justify-content:center;
+  }
+  .sheet{
+    width:210mm;
+    min-height:297mm;
+    background:var(--paper);
+    color:var(--ink);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    position:relative;
+  }
+  .sheet-border{
+    position:absolute;
+    top:12mm;left:12mm;right:12mm;bottom:12mm;
+    border:1.4px solid var(--ink);
+    pointer-events:none;
+  }
+  .sheet-inner{
+    position:relative;
+    padding:16mm 16mm 18mm;
+    font-family:'Times New Roman',Georgia,serif;
+    font-size:13.5px;
+    line-height:1.55;
+    z-index:1;
+  }
+  .watermark{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    background-repeat:repeat;
+    opacity:.9;
+    pointer-events:none;
+  }
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:12.5px;
+    font-weight:700;
+  }
+  .rec-title{
+    text-align:center;
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    margin:10px 0 8px;
+  }
+  hr.rule{border:none;border-top:1.4px solid var(--ink);margin:0 0 16px;}
+  .blk{margin-bottom:16px;}
+  .blk h3{
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:13px;
+    font-weight:700;
+    margin:0 0 8px;
+  }
+  .blk .body{white-space:pre-wrap;}
+  .blank-rule{
+    background-image:repeating-linear-gradient(
+      to bottom, transparent 0, transparent 27px, #bbb 28px
+    );
+  }
+  .blank-rule.short{height:70px;}
+  .blank-rule.tall{height:180px;}
+  pre.code{
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    margin:0;
+    padding:10px 12px;
+    background:#fbfbf9;
+    border:1px solid #ddd;
+    border-radius:3px;
+  }
+  .out-sub{
+    font-family:Arial,Helvetica,sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    margin:10px 0 6px;
+  }
+  .out-box{
+    background:#f1f1ee;
+    border:1px solid #dcdcd6;
+    border-radius:4px;
+    padding:10px 12px;
+    font-family:'Courier New',monospace;
+    font-size:12px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+  }
+  .out-box .ok{color:var(--success);font-style:italic;}
+  .out-photos{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:8px;
+  }
+  .out-photo-img{
+    max-width:100%;
+    max-height:220px;
+    border:1px solid #ccc;
+    border-radius:3px;
+  }
+  .end-rule{border:none;border-top:1.4px solid var(--ink);margin:18px 0 0;}
+
+  @media print{
+    body{background:#fff;}
+    .bench, .press{background:#fff;padding:0;}
+    .bench{display:none;}
+    .press{display:block;padding:0;height:auto;overflow:visible;}
+    .sheet{box-shadow:none;margin:0 auto;width:auto;min-height:0;}
+    @page{size:A4;margin:0;}
+    .blk, .out-block-print{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bench">
+  <h1>Record Press</h1>
+  <p class="tag">Fill this in once — get a print-ready lab record on the right. Print it, or "Save as PDF" from the print dialog.</p>
+
+  <div class="field">
+    <label>Experiment Title</label>
+    <input type="text" id="title" value="Caesar Cipher – Encryption and Decryption">
+  </div>
+
+  <div class="row2">
+    <div class="field">
+      <label>Exp No.</label>
+      <input type="text" id="expNo" value="1">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="text" id="date" value="">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Watermark (roll no. / reg. no.)</label>
+    <input type="text" id="watermark" value="24007160XXXX">
+    <div class="hint">Tiled diagonally across the sheet, like an ID stamp.</div>
+  </div>
+
+  <div class="field">
+    <label>Document Font</label>
+    <select id="fontSelect">
+      <option value="'Times New Roman', Georgia, serif">Times New Roman</option>
+      <option value="Georgia, serif">Georgia</option>
+      <option value="Cambria, Georgia, serif">Cambria</option>
+      <option value="Arial, Helvetica, sans-serif">Arial</option>
+      <option value="Calibri, 'Segoe UI', sans-serif">Calibri (approx.)</option>
+      <option value="Verdana, Geneva, sans-serif">Verdana</option>
+      <option value="'Courier New', Courier, monospace">Courier New</option>
+    </select>
+    <div class="hint">Applies to the whole printed sheet.</div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">Aim</div>
+  <div class="toggle" data-target="aim">
+    <button data-mode="text" class="active">Type it in</button>
+    <button data-mode="blank">Leave blank space</button>
+  </div>
+  <div class="field" id="aim-text-wrap">
+    <textarea id="aimText" placeholder="To implement a Caesar Cipher program for encryption and decryption of a message.">To implement a Caesar Cipher program for encryption and decryption of a message using Java.</textarea>
+  </div>
+
+  <div class="section-label">Algorithm</div>
+  <div class="toggle" data-target="algo">
+    <button data-mode="text" class="active">Type it in</button>
+    <button data-mode="blank">Leave blank space</button>
+  </div>
+  <div class="field" id="algo-text-wrap">
+    <textarea id="algoText" placeholder="Step 1: Start&#10;Step 2: ...">1. Start.
+2. Read the message and the shift key.
+3. For each character, shift it forward (encryption) or backward (decryption) by the key value, wrapping around the alphabet.
+4. Leave non-alphabet characters unchanged.
+5. Display the resulting message.
+6. Stop.</textarea>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">Source Code</div>
+  <div class="field">
+    <textarea class="code" id="sourceCode" placeholder="Paste your code here...">import java.util.Scanner;
+
+public class CaesarCipher {
+    public static void encrypt() {
+        // ...
+    }
+}</textarea>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">Output</div>
+  <div id="outputs"></div>
+  <button class="addbtn" id="addOutput">+ Add another output block</button>
+
+  <hr class="divider">
+  <div class="section-label">Additional Sections</div>
+  <p class="hint" style="margin:-6px 0 12px;">Add extra sections (e.g. Observation, Precautions, Viva Questions). They appear after Output, before Result.</p>
+  <div id="customSections"></div>
+  <button class="addbtn" id="addCustomSection">+ Add custom section</button>
+
+  <hr class="divider">
+  <div class="section-label">Result</div>
+  <div class="field">
+    <textarea id="resultText">The experiment for implementation of Caesar Cipher is successfully executed and verified.</textarea>
+  </div>
+
+  <div class="printbar">
+    <button class="printbtn" id="printBtn">Print / Save as PDF</button>
+    <button class="printbtn docbtn" id="downloadDocBtn">Download as Word (.doc)</button>
+    <div class="printhint">In the print dialog, set Destination to "Save as PDF" for a file you can submit. The Word download opens directly in Microsoft Word / Google Docs.</div>
+  </div>
+</div>
+
+<div class="press">
+  <div class="sheet" id="sheet">
+    <div class="watermark" id="watermarkLayer"></div>
+    <div class="sheet-border"></div>
+    <div class="sheet-inner" id="sheetInner">
+      <div class="meta-row">
+        <span id="pv-exp">EXP: 1</span>
+        <span id="pv-date">Date: —</span>
+      </div>
+      <div class="rec-title" id="pv-title"></div>
+      <hr class="rule">
+
+      <div class="blk">
+        <h3>Aim</h3>
+        <div class="body" id="pv-aim"></div>
+      </div>
+      <hr class="rule">
+
+      <div class="blk">
+        <h3>Algorithm</h3>
+        <div class="body" id="pv-algo"></div>
+      </div>
+      <hr class="rule">
+
+      <div class="blk">
+        <h3>Source Code</h3>
+        <pre class="code" id="pv-code"></pre>
+      </div>
+
+      <div class="blk">
+        <h3>Output</h3>
+        <div id="pv-outputs"></div>
+      </div>
+
+      <div id="pv-custom-sections"></div>
+
+      <hr class="end-rule">
+      <div class="blk" style="margin-top:16px;">
+        <h3>Result</h3>
+        <div class="body" id="pv-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- helpers ----------
+function esc(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ---------- default date ----------
+(function(){
+  const d = new Date();
+  const s = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  document.getElementById('date').value = s;
+})();
+
+// ---------- toggle logic (aim / algorithm: text vs blank) ----------
+const modes = {aim:'text', algo:'text'};
+document.querySelectorAll('.toggle[data-target]').forEach(t=>{
+  const target = t.dataset.target;
+  t.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      t.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      modes[target] = b.dataset.mode;
+      document.getElementById(target+'-text-wrap').style.display = (b.dataset.mode==='text') ? 'block' : 'none';
+      render();
+    });
+  });
+});
+
+// ---------- output blocks (with photo upload) ----------
+const outputsWrap = document.getElementById('outputs');
+let outCount = 0;
+
+function addOutputBlock(label, content, showOk){
+  outCount++;
+  const id = 'out'+outCount;
+  const div = document.createElement('div');
+  div.className = 'out-block';
+  div.dataset.id = id;
+  div.images = []; // holds data URLs for uploaded photos
+  div.innerHTML = `
+    <button class="remove" title="Remove">✕</button>
+    <div class="field">
+      <label>Label</label>
+      <input type="text" class="out-label" value="${esc(label)}">
+    </div>
+    <div class="field">
+      <label>Output text</label>
+      <textarea class="out-content" rows="5">${esc(content)}</textarea>
+    </div>
+    <div class="field">
+      <label>Attach photo(s) / screenshot(s)</label>
+      <input type="file" class="out-photo" accept="image/*" multiple>
+      <div class="photo-thumbs"></div>
+    </div>
+    <div class="checkline">
+      <input type="checkbox" class="out-ok" ${showOk?'checked':''}>
+      <span>Append "=== Code Execution Successful ===" line</span>
+    </div>
+  `;
+  outputsWrap.appendChild(div);
+  div.querySelector('.remove').addEventListener('click', ()=>{ div.remove(); render(); });
+  div.querySelectorAll('.out-label, .out-content, .out-ok').forEach(el=>el.addEventListener('input', render));
+
+  const photoInput = div.querySelector('.out-photo');
+  const thumbsWrap = div.querySelector('.photo-thumbs');
+
+  function renderThumbs(){
+    thumbsWrap.innerHTML = '';
+    div.images.forEach((src, idx)=>{
+      const t = document.createElement('div');
+      t.className = 'thumb';
+      const img = document.createElement('img');
+      img.src = src;
+      const rm = document.createElement('button');
+      rm.className = 'thumb-remove';
+      rm.textContent = '✕';
+      rm.title = 'Remove photo';
+      rm.addEventListener('click', ()=>{
+        div.images.splice(idx,1);
+        renderThumbs();
+        render();
+      });
+      t.appendChild(img);
+      t.appendChild(rm);
+      thumbsWrap.appendChild(t);
+    });
+  }
+
+  photoInput.addEventListener('change', (e)=>{
+    const files = Array.from(e.target.files || []);
+    files.forEach(file=>{
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        div.images.push(reader.result);
+        renderThumbs();
+        render();
+      };
+      reader.readAsDataURL(file);
+    });
+    photoInput.value = ''; // allow re-selecting the same file later
+  });
+}
+
+document.getElementById('addOutput').addEventListener('click', ()=>{
+  addOutputBlock('Run '+(outCount+1), '', true);
+  render();
+});
+
+// seed with two blocks matching the sample
+addOutputBlock('Encryption', `Choose any one!
+1. Encryption
+2. Decryption
+Enter your choice: 1
+Enter a message to encrypt: IMRAN
+Enter key: 4
+Encrypted message: MQVER`, true);
+addOutputBlock('Decryption', `Choose any one!
+1. Encryption
+2. Decryption
+Enter your choice: 2
+Enter a message to decrypt: ImRaN
+Enter key: 4
+Decrypted message: EiNwJ`, true);
+
+// ---------- custom sections ----------
+const customWrap = document.getElementById('customSections');
+let csCount = 0;
+const csModes = {};
+
+function addCustomSection(title, content, mode){
+  csCount++;
+  const id = 'cs'+csCount;
+  csModes[id] = mode || 'text';
+  const div = document.createElement('div');
+  div.className = 'out-block';
+  div.dataset.id = id;
+  div.innerHTML = `
+    <button class="remove" title="Remove">✕</button>
+    <div class="field">
+      <label>Section Title</label>
+      <input type="text" class="cs-title" value="${esc(title)}">
+    </div>
+    <div class="toggle" data-cstarget="${id}">
+      <button data-mode="text" class="${mode!=='blank' ? 'active' : ''}">Type it in</button>
+      <button data-mode="blank" class="${mode==='blank' ? 'active' : ''}">Leave blank space</button>
+    </div>
+    <div class="field cs-text-wrap" style="${mode==='blank' ? 'display:none;' : ''}">
+      <textarea class="cs-content" rows="4">${esc(content)}</textarea>
+    </div>
+  `;
+  customWrap.appendChild(div);
+  div.querySelector('.remove').addEventListener('click', ()=>{ delete csModes[id]; div.remove(); render(); });
+  div.querySelector('.cs-title').addEventListener('input', render);
+  div.querySelector('.cs-content').addEventListener('input', render);
+  div.querySelectorAll('.toggle button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      div.querySelectorAll('.toggle button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      csModes[id] = b.dataset.mode;
+      div.querySelector('.cs-text-wrap').style.display = (b.dataset.mode === 'text') ? 'block' : 'none';
+      render();
+    });
+  });
+}
+
+document.getElementById('addCustomSection').addEventListener('click', ()=>{
+  addCustomSection('Observation', '', 'text');
+  render();
+});
+
+// ---------- watermark ----------
+function buildWatermark(text){
+  const t = esc(text || '');
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='420' height='520'>
+      <text x='210' y='260' font-family='Arial' font-size='30' fill='rgba(0,0,0,0.10)'
+        text-anchor='middle' transform='rotate(-32 210 260)'>${t}</text>
+    </svg>`;
+  const uri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+  document.getElementById('watermarkLayer').style.backgroundImage = `url("${uri}")`;
+}
+
+// ---------- render ----------
+function render(){
+  document.getElementById('pv-exp').textContent = 'EXP: ' + (document.getElementById('expNo').value || '');
+  document.getElementById('pv-date').textContent = 'Date: ' + (document.getElementById('date').value || '');
+  document.getElementById('pv-title').textContent = document.getElementById('title').value || '';
+
+  // font
+  document.getElementById('sheetInner').style.fontFamily = document.getElementById('fontSelect').value;
+
+  // aim
+  const aimEl = document.getElementById('pv-aim');
+  if(modes.aim === 'text'){
+    aimEl.className = 'body';
+    aimEl.textContent = document.getElementById('aimText').value;
+  } else {
+    aimEl.className = 'body blank-rule short';
+    aimEl.textContent = '';
+  }
+
+  // algorithm
+  const algoEl = document.getElementById('pv-algo');
+  if(modes.algo === 'text'){
+    algoEl.className = 'body';
+    algoEl.textContent = document.getElementById('algoText').value;
+  } else {
+    algoEl.className = 'body blank-rule tall';
+    algoEl.textContent = '';
+  }
+
+  // source code
+  document.getElementById('pv-code').textContent = document.getElementById('sourceCode').value;
+
+  // outputs
+  const outWrap = document.getElementById('pv-outputs');
+  outWrap.innerHTML = '';
+  outputsWrap.querySelectorAll('.out-block').forEach(block=>{
+    const label = block.querySelector('.out-label').value;
+    const content = block.querySelector('.out-content').value;
+    const ok = block.querySelector('.out-ok').checked;
+    const wrap = document.createElement('div');
+    wrap.className = 'out-block-print';
+    const sub = document.createElement('div');
+    sub.className = 'out-sub';
+    sub.textContent = label + ':';
+    const hasText = content.trim().length > 0;
+    const box = document.createElement('div');
+    box.className = 'out-box';
+    box.textContent = content + (ok && hasText ? '\n\n=== Code Execution Successful ===' : '');
+    if(ok && hasText){
+      // recolor last line green by splitting into spans
+      const lines = box.textContent.split('\n');
+      box.innerHTML = lines.map((l,i)=> i===lines.length-1 && l.startsWith('===')
+        ? `<span class="ok">${esc(l)}</span>` : esc(l)).join('\n');
+    }
+    // if there's no text at all and no photos, skip rendering an empty box
+    if(!hasText && (!block.images || !block.images.length)){
+      box.style.display = 'none';
+    }
+    wrap.appendChild(sub);
+    wrap.appendChild(box);
+
+    // attached photos
+    if(block.images && block.images.length){
+      const gallery = document.createElement('div');
+      gallery.className = 'out-photos';
+      block.images.forEach(src=>{
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'out-photo-img';
+        gallery.appendChild(img);
+      });
+      wrap.appendChild(gallery);
+    }
+
+    outWrap.appendChild(wrap);
+  });
+
+  // custom sections
+  const customPreview = document.getElementById('pv-custom-sections');
+  customPreview.innerHTML = '';
+  customWrap.querySelectorAll('.out-block').forEach(block=>{
+    const id = block.dataset.id;
+    const title = block.querySelector('.cs-title').value || 'Section';
+    const mode = csModes[id] || 'text';
+    const content = block.querySelector('.cs-content').value;
+
+    const secDiv = document.createElement('div');
+    secDiv.className = 'blk';
+    const h3 = document.createElement('h3');
+    h3.textContent = title;
+    secDiv.appendChild(h3);
+
+    const bodyDiv = document.createElement('div');
+    if(mode === 'text'){
+      bodyDiv.className = 'body';
+      bodyDiv.textContent = content;
+    } else {
+      bodyDiv.className = 'body blank-rule short';
+    }
+    secDiv.appendChild(bodyDiv);
+
+    const hr = document.createElement('hr');
+    hr.className = 'rule';
+    secDiv.appendChild(hr);
+
+    customPreview.appendChild(secDiv);
+  });
+
+  // result
+  document.getElementById('pv-result').textContent = document.getElementById('resultText').value;
+
+  buildWatermark(document.getElementById('watermark').value);
+}
+
+// wire up live inputs
+['title','expNo','date','watermark','aimText','algoText','sourceCode','resultText'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', render);
+});
+document.getElementById('fontSelect').addEventListener('change', render);
+
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+
+// ---------- download as Word (.doc) ----------
+function downloadAsWord(){
+  const inner = document.getElementById('sheetInner').innerHTML;
+  const fontFamily = document.getElementById('fontSelect').value;
+  const titleText = document.getElementById('title').value || 'Lab Record';
+
+  // Self-contained CSS so Word/Google Docs render it reasonably close to the preview
+  const exportStyle = `
+    <style>
+      @page { size: 21cm 29.7cm; margin: 16mm; }
+      body { font-family: ${fontFamily}; font-size: 13.5pt; line-height: 1.55; color:#1a1a1a; }
+      .meta-row { display:flex; justify-content:space-between; font-family:Arial,Helvetica,sans-serif; font-size:11pt; font-weight:bold; }
+      .rec-title { text-align:center; font-family:Arial,Helvetica,sans-serif; font-weight:bold; font-size:13pt; margin:10px 0 8px; }
+      hr.rule, hr.end-rule { border:none; border-top:1.4pt solid #1a1a1a; margin:0 0 16px; }
+      .blk { margin-bottom:16px; }
+      .blk h3 { font-family:Arial,Helvetica,sans-serif; font-size:11.5pt; font-weight:bold; margin:0 0 8px; }
+      .blk .body { white-space:pre-wrap; }
+      .blank-rule.short { height:70px; border-bottom:1px solid #bbb; }
+      .blank-rule.tall { height:180px; border-bottom:1px solid #bbb; }
+      pre.code { font-family:'Courier New',monospace; font-size:10.5pt; white-space:pre-wrap; word-wrap:break-word; padding:10px 12px; background:#fbfbf9; border:1px solid #ddd; }
+      .out-sub { font-family:Arial,Helvetica,sans-serif; font-weight:bold; font-size:11pt; margin:10px 0 6px; }
+      .out-box { background:#f1f1ee; border:1px solid #dcdcd6; padding:10px 12px; font-family:'Courier New',monospace; font-size:10.5pt; white-space:pre-wrap; word-wrap:break-word; }
+      .out-box .ok { color:#2f7d4f; font-style:italic; }
+      .out-photos img { max-width:400px; max-height:280px; border:1px solid #ccc; margin-top:6px; }
+    </style>
+  `;
+
+  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>"
+    + "<head><meta charset='utf-8'><title>" + esc(titleText) + "</title>" + exportStyle + "</head><body>";
+  const footer = "</body></html>";
+  const sourceHTML = header + inner + footer;
+
+  const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const safeName = (titleText || 'lab-record').replace(/[^a-z0-9\- ]/gi,'').trim().replace(/\s+/g,'-').toLowerCase() || 'lab-record';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = safeName + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('downloadDocBtn').addEventListener('click', downloadAsWord);
+
+render();
+</script>
+</body>
+</html>
