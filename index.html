@@ -35,7 +35,7 @@
     max-width:460px;
     background:var(--bench-panel);
     border-right:1px solid var(--bench-line);
-    padding:22px 22px 60px;
+    padding:22px 22px 32px;
     overflow-y:auto;
     height:100vh;
   }
@@ -63,6 +63,8 @@
   }
   .row2{display:flex;gap:10px;}
   .row2 .field{flex:1;}
+  .row3{display:flex;gap:10px;}
+  .row3 .field{flex:1;}
   input[type=text],input[type=number],textarea,select{
     width:100%;
     background:#0f1216;
@@ -74,15 +76,7 @@
     border-radius:3px;
     resize:vertical;
   }
-  select{
-    appearance:none;
-    -webkit-appearance:none;
-    background-image:linear-gradient(45deg, transparent 50%, var(--bench-dim) 50%), linear-gradient(135deg, var(--bench-dim) 50%, transparent 50%);
-    background-position: calc(100% - 16px) center, calc(100% - 11px) center;
-    background-size: 5px 5px, 5px 5px;
-    background-repeat:no-repeat;
-    cursor:pointer;
-  }
+  select{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--bench-dim) 50%),linear-gradient(135deg,var(--bench-dim) 50%,transparent 50%);background-position:calc(100% - 16px) center,calc(100% - 11px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px;}
   input:focus,textarea:focus,select:focus{
     outline:none;
     border-color:var(--accent-dim);
@@ -178,49 +172,43 @@
   }
   .addbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
 
-  /* photo upload thumbs */
-  input[type=file]{
-    width:100%;
-    background:#0f1216;
+  /* ---------- typography panel ---------- */
+  .style-table{
     border:1px solid var(--bench-line);
-    color:var(--bench-dim);
-    padding:8px 10px;
-    font-family:inherit;
-    font-size:11px;
-    border-radius:3px;
-  }
-  .photo-thumbs{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:8px;
-  }
-  .thumb{
-    position:relative;
-    width:56px;height:56px;
-    border:1px solid var(--bench-line);
-    border-radius:3px;
+    border-radius:4px;
     overflow:hidden;
   }
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  .thumb-remove{
-    position:absolute;
-    top:0;right:0;
-    background:rgba(0,0,0,.65);
-    color:#fff;
-    border:none;
-    width:16px;height:16px;
-    font-size:10px;
-    line-height:16px;
-    padding:0;
-    cursor:pointer;
+  .style-row{
+    display:grid;
+    grid-template-columns:64px 1fr 56px;
+    gap:8px;
+    align-items:center;
+    padding:8px 10px;
+    border-bottom:1px solid var(--bench-line);
   }
+  .style-row:last-child{border-bottom:none;}
+  .style-row.head{
+    background:#0f1216;
+    font-size:9.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--bench-dim);
+    padding:6px 10px;
+  }
+  .style-row .sname{font-size:11px;color:var(--bench-text);}
+  .style-row select, .style-row input{
+    padding:6px 7px;
+    font-size:11px;
+  }
+  .style-row input[type=number]{padding:6px 4px;text-align:center;}
 
   .printbar{
     position:sticky;
-    bottom:-60px;
+    bottom:0;
     margin-top:24px;
     padding-top:16px;
+    padding-bottom:6px;
+    background:var(--bench-panel);
     border-top:1px solid var(--bench-line);
   }
   .printbtn{
@@ -238,12 +226,6 @@
     cursor:pointer;
   }
   .printbtn:hover{background:#ffa565;}
-  .printbtn.docbtn{
-    background:#2b3a52;
-    color:#dbe6ff;
-    margin-top:8px;
-  }
-  .printbtn.docbtn:hover{background:#37496a;}
   .printhint{font-size:10px;color:var(--bench-dim);margin-top:8px;line-height:1.5;}
 
   /* ---------- RIGHT: PRESS / PREVIEW ---------- */
@@ -256,7 +238,9 @@
       var(--bench-bg);
     padding:40px 0 90px;
     display:flex;
-    justify-content:center;
+    flex-direction:column;
+    align-items:center;
+    gap:28px;
   }
   .sheet{
     width:210mm;
@@ -265,6 +249,7 @@
     color:var(--ink);
     box-shadow:0 20px 60px rgba(0,0,0,.5);
     position:relative;
+    flex:none;
   }
   .sheet-border{
     position:absolute;
@@ -279,6 +264,9 @@
     font-size:13.5px;
     line-height:1.55;
     z-index:1;
+    min-height:calc(297mm - 34mm);
+    display:flex;
+    flex-direction:column;
   }
   .watermark{
     position:absolute;
@@ -318,6 +306,7 @@
   }
   .blank-rule.short{height:70px;}
   .blank-rule.tall{height:180px;}
+  .blank-rule.full{flex:1;min-height:200px;}
   pre.code{
     font-family:'Courier New',monospace;
     font-size:12px;
@@ -346,26 +335,24 @@
     word-wrap:break-word;
   }
   .out-box .ok{color:var(--success);font-style:italic;}
-  .out-photos{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:8px;
-  }
-  .out-photo-img{
-    max-width:100%;
-    max-height:220px;
-    border:1px solid #ccc;
-    border-radius:3px;
-  }
   .end-rule{border:none;border-top:1.4px solid var(--ink);margin:18px 0 0;}
+  .pagefoot{
+    margin-top:auto;
+    padding-top:10px;
+    text-align:center;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:9.5px;
+    color:#666;
+  }
+  .blankpage-body{flex:1;display:flex;flex-direction:column;}
 
   @media print{
     body{background:#fff;}
     .bench, .press{background:#fff;padding:0;}
     .bench{display:none;}
-    .press{display:block;padding:0;height:auto;overflow:visible;}
-    .sheet{box-shadow:none;margin:0 auto;width:auto;min-height:0;}
+    .press{display:block;padding:0;height:auto;overflow:visible;gap:0;}
+    .sheet{box-shadow:none;margin:0 auto;width:auto;min-height:0;page-break-after:always;}
+    .sheet:last-child{page-break-after:auto;}
     @page{size:A4;margin:0;}
     .blk, .out-block-print{page-break-inside:avoid;}
   }
@@ -397,20 +384,6 @@
     <label>Watermark (roll no. / reg. no.)</label>
     <input type="text" id="watermark" value="24007160XXXX">
     <div class="hint">Tiled diagonally across the sheet, like an ID stamp.</div>
-  </div>
-
-  <div class="field">
-    <label>Document Font</label>
-    <select id="fontSelect">
-      <option value="'Times New Roman', Georgia, serif">Times New Roman</option>
-      <option value="Georgia, serif">Georgia</option>
-      <option value="Cambria, Georgia, serif">Cambria</option>
-      <option value="Arial, Helvetica, sans-serif">Arial</option>
-      <option value="Calibri, 'Segoe UI', sans-serif">Calibri (approx.)</option>
-      <option value="Verdana, Geneva, sans-serif">Verdana</option>
-      <option value="'Courier New', Courier, monospace">Courier New</option>
-    </select>
-    <div class="hint">Applies to the whole printed sheet.</div>
   </div>
 
   <hr class="divider">
@@ -455,25 +428,46 @@ public class CaesarCipher {
   <button class="addbtn" id="addOutput">+ Add another output block</button>
 
   <hr class="divider">
-  <div class="section-label">Additional Sections</div>
-  <p class="hint" style="margin:-6px 0 12px;">Add extra sections (e.g. Observation, Precautions, Viva Questions). They appear after Output, before Result.</p>
-  <div id="customSections"></div>
-  <button class="addbtn" id="addCustomSection">+ Add custom section</button>
-
-  <hr class="divider">
   <div class="section-label">Result</div>
   <div class="field">
     <textarea id="resultText">The experiment for implementation of Caesar Cipher is successfully executed and verified.</textarea>
   </div>
 
+  <hr class="divider">
+  <div class="section-label">Pages</div>
+  <div class="field">
+    <label>Extra blank ruled pages</label>
+    <input type="number" id="blankPages" value="0" min="0" max="20" step="1">
+    <div class="hint">Appends full ruled A4 pages after the record — handy for handwritten workings, diagrams, or a viva page. Each one carries the same header and its own page number.</div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">Typography</div>
+  <div class="field">
+    <label>Base font style</label>
+    <select id="globalFamily"></select>
+  </div>
+  <div class="field">
+    <label>Base font size (pt)</label>
+    <input type="number" id="globalSize" value="13.5" min="8" max="24" step="0.5">
+    <div class="hint">Applied to every section below, unless a section is set to its own style.</div>
+  </div>
+
+  <div class="field">
+    <label>Per-section style</label>
+    <div class="style-table" id="styleTable">
+      <div class="style-row head"><span>Size</span><span>Font</span><span>Pt</span></div>
+    </div>
+    <div class="hint">"Use base style" follows the settings above. Section headings (Aim, Algorithm…) stay bold Arial as a fixed structural label — this only changes the text underneath.</div>
+  </div>
+
   <div class="printbar">
     <button class="printbtn" id="printBtn">Print / Save as PDF</button>
-    <button class="printbtn docbtn" id="downloadDocBtn">Download as Word (.doc)</button>
-    <div class="printhint">In the print dialog, set Destination to "Save as PDF" for a file you can submit. The Word download opens directly in Microsoft Word / Google Docs.</div>
+    <div class="printhint">In the print dialog, set Destination to "Save as PDF" for a file you can submit.</div>
   </div>
 </div>
 
-<div class="press">
+<div class="press" id="press">
   <div class="sheet" id="sheet">
     <div class="watermark" id="watermarkLayer"></div>
     <div class="sheet-border"></div>
@@ -507,13 +501,13 @@ public class CaesarCipher {
         <div id="pv-outputs"></div>
       </div>
 
-      <div id="pv-custom-sections"></div>
-
       <hr class="end-rule">
       <div class="blk" style="margin-top:16px;">
         <h3>Result</h3>
         <div class="body" id="pv-result"></div>
       </div>
+
+      <div class="pagefoot" id="pv-pagefoot">Page 1</div>
     </div>
   </div>
 </div>
@@ -521,7 +515,7 @@ public class CaesarCipher {
 <script>
 // ---------- helpers ----------
 function esc(s){
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ---------- default date ----------
@@ -533,7 +527,7 @@ function esc(s){
 
 // ---------- toggle logic (aim / algorithm: text vs blank) ----------
 const modes = {aim:'text', algo:'text'};
-document.querySelectorAll('.toggle[data-target]').forEach(t=>{
+document.querySelectorAll('.toggle').forEach(t=>{
   const target = t.dataset.target;
   t.querySelectorAll('button').forEach(b=>{
     b.addEventListener('click', ()=>{
@@ -546,7 +540,7 @@ document.querySelectorAll('.toggle[data-target]').forEach(t=>{
   });
 });
 
-// ---------- output blocks (with photo upload) ----------
+// ---------- output blocks ----------
 const outputsWrap = document.getElementById('outputs');
 let outCount = 0;
 
@@ -556,7 +550,6 @@ function addOutputBlock(label, content, showOk){
   const div = document.createElement('div');
   div.className = 'out-block';
   div.dataset.id = id;
-  div.images = []; // holds data URLs for uploaded photos
   div.innerHTML = `
     <button class="remove" title="Remove">✕</button>
     <div class="field">
@@ -567,11 +560,6 @@ function addOutputBlock(label, content, showOk){
       <label>Output text</label>
       <textarea class="out-content" rows="5">${esc(content)}</textarea>
     </div>
-    <div class="field">
-      <label>Attach photo(s) / screenshot(s)</label>
-      <input type="file" class="out-photo" accept="image/*" multiple>
-      <div class="photo-thumbs"></div>
-    </div>
     <div class="checkline">
       <input type="checkbox" class="out-ok" ${showOk?'checked':''}>
       <span>Append "=== Code Execution Successful ===" line</span>
@@ -579,46 +567,7 @@ function addOutputBlock(label, content, showOk){
   `;
   outputsWrap.appendChild(div);
   div.querySelector('.remove').addEventListener('click', ()=>{ div.remove(); render(); });
-  div.querySelectorAll('.out-label, .out-content, .out-ok').forEach(el=>el.addEventListener('input', render));
-
-  const photoInput = div.querySelector('.out-photo');
-  const thumbsWrap = div.querySelector('.photo-thumbs');
-
-  function renderThumbs(){
-    thumbsWrap.innerHTML = '';
-    div.images.forEach((src, idx)=>{
-      const t = document.createElement('div');
-      t.className = 'thumb';
-      const img = document.createElement('img');
-      img.src = src;
-      const rm = document.createElement('button');
-      rm.className = 'thumb-remove';
-      rm.textContent = '✕';
-      rm.title = 'Remove photo';
-      rm.addEventListener('click', ()=>{
-        div.images.splice(idx,1);
-        renderThumbs();
-        render();
-      });
-      t.appendChild(img);
-      t.appendChild(rm);
-      thumbsWrap.appendChild(t);
-    });
-  }
-
-  photoInput.addEventListener('change', (e)=>{
-    const files = Array.from(e.target.files || []);
-    files.forEach(file=>{
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        div.images.push(reader.result);
-        renderThumbs();
-        render();
-      };
-      reader.readAsDataURL(file);
-    });
-    photoInput.value = ''; // allow re-selecting the same file later
-  });
+  div.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', render));
 }
 
 document.getElementById('addOutput').addEventListener('click', ()=>{
@@ -642,54 +591,8 @@ Enter a message to decrypt: ImRaN
 Enter key: 4
 Decrypted message: EiNwJ`, true);
 
-// ---------- custom sections ----------
-const customWrap = document.getElementById('customSections');
-let csCount = 0;
-const csModes = {};
-
-function addCustomSection(title, content, mode){
-  csCount++;
-  const id = 'cs'+csCount;
-  csModes[id] = mode || 'text';
-  const div = document.createElement('div');
-  div.className = 'out-block';
-  div.dataset.id = id;
-  div.innerHTML = `
-    <button class="remove" title="Remove">✕</button>
-    <div class="field">
-      <label>Section Title</label>
-      <input type="text" class="cs-title" value="${esc(title)}">
-    </div>
-    <div class="toggle" data-cstarget="${id}">
-      <button data-mode="text" class="${mode!=='blank' ? 'active' : ''}">Type it in</button>
-      <button data-mode="blank" class="${mode==='blank' ? 'active' : ''}">Leave blank space</button>
-    </div>
-    <div class="field cs-text-wrap" style="${mode==='blank' ? 'display:none;' : ''}">
-      <textarea class="cs-content" rows="4">${esc(content)}</textarea>
-    </div>
-  `;
-  customWrap.appendChild(div);
-  div.querySelector('.remove').addEventListener('click', ()=>{ delete csModes[id]; div.remove(); render(); });
-  div.querySelector('.cs-title').addEventListener('input', render);
-  div.querySelector('.cs-content').addEventListener('input', render);
-  div.querySelectorAll('.toggle button').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      div.querySelectorAll('.toggle button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      csModes[id] = b.dataset.mode;
-      div.querySelector('.cs-text-wrap').style.display = (b.dataset.mode === 'text') ? 'block' : 'none';
-      render();
-    });
-  });
-}
-
-document.getElementById('addCustomSection').addEventListener('click', ()=>{
-  addCustomSection('Observation', '', 'text');
-  render();
-});
-
 // ---------- watermark ----------
-function buildWatermark(text){
+function buildWatermark(text, targetEl){
   const t = esc(text || '');
   const svg = `
     <svg xmlns='http://www.w3.org/2000/svg' width='420' height='520'>
@@ -697,17 +600,129 @@ function buildWatermark(text){
         text-anchor='middle' transform='rotate(-32 210 260)'>${t}</text>
     </svg>`;
   const uri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-  document.getElementById('watermarkLayer').style.backgroundImage = `url("${uri}")`;
+  targetEl.style.backgroundImage = `url("${uri}")`;
+}
+
+// ---------- typography ----------
+const FONTS = [
+  {v:"'Times New Roman', Times, serif", l:'Times New Roman'},
+  {v:"Georgia, 'Times New Roman', serif", l:'Georgia'},
+  {v:"Arial, Helvetica, sans-serif", l:'Arial'},
+  {v:"Calibri, 'Segoe UI', sans-serif", l:'Calibri'},
+  {v:"Verdana, Geneva, sans-serif", l:'Verdana'},
+  {v:"'Courier New', Courier, monospace", l:'Courier New (mono)'},
+  {v:"'Brush Script MT', 'Segoe Script', cursive", l:'Cursive (script)'},
+  {v:"'Comic Sans MS', 'Comic Sans', cursive", l:'Cursive (comic)'}
+];
+
+const SECTIONS = [
+  {key:'title', label:'Title',        target:'pv-title',   family:"Arial, Helvetica, sans-serif",        size:14.5},
+  {key:'aim',   label:'Aim',          target:'pv-aim',      family:'inherit',                              size:''},
+  {key:'algo',  label:'Algorithm',    target:'pv-algo',     family:'inherit',                              size:''},
+  {key:'code',  label:'Source Code',  target:'pv-code',     family:"'Courier New', Courier, monospace",   size:12},
+  {key:'output',label:'Output',       target:'pv-outputs',  family:"'Courier New', Courier, monospace",   size:12},
+  {key:'result',label:'Result',       target:'pv-result',   family:'inherit',                              size:''}
+];
+
+function populateFontSelect(sel, includeInherit){
+  if(includeInherit){
+    const opt = document.createElement('option');
+    opt.value = 'inherit';
+    opt.textContent = 'Use base style';
+    sel.appendChild(opt);
+  }
+  FONTS.forEach(f=>{
+    const opt = document.createElement('option');
+    opt.value = f.v;
+    opt.textContent = f.l;
+    opt.style.fontFamily = f.v;
+    sel.appendChild(opt);
+  });
+}
+
+// global family select
+const globalFamilySel = document.getElementById('globalFamily');
+populateFontSelect(globalFamilySel, false);
+globalFamilySel.value = "'Times New Roman', Times, serif";
+
+// per-section rows
+const styleTable = document.getElementById('styleTable');
+SECTIONS.forEach(s=>{
+  const row = document.createElement('div');
+  row.className = 'style-row';
+  row.innerHTML = `
+    <span class="sname">${s.label}</span>
+    <select id="sf-${s.key}"></select>
+    <input type="number" id="ss-${s.key}" min="8" max="24" step="0.5" placeholder="—">
+  `;
+  styleTable.appendChild(row);
+  const sel = row.querySelector(`#sf-${s.key}`);
+  populateFontSelect(sel, true);
+  sel.value = s.family;
+  if(s.size !== ''){
+    row.querySelector(`#ss-${s.key}`).value = s.size;
+  }
+});
+
+function sectionStyle(key){
+  const globalFamily = globalFamilySel.value;
+  const globalSize = parseFloat(document.getElementById('globalSize').value) || 13.5;
+  const famSel = document.getElementById('sf-'+key);
+  const sizeInput = document.getElementById('ss-'+key);
+  const family = (famSel && famSel.value !== 'inherit') ? famSel.value : globalFamily;
+  const size = (sizeInput && sizeInput.value !== '') ? parseFloat(sizeInput.value) : globalSize;
+  return {family, size};
+}
+
+function applyStyle(el, key){
+  if(!el) return;
+  const st = sectionStyle(key);
+  el.style.fontFamily = st.family;
+  el.style.fontSize = st.size + 'px';
+}
+
+// ---------- extra blank pages ----------
+function buildBlankPage(pageNum, totalPages){
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.innerHTML = `
+    <div class="watermark"></div>
+    <div class="sheet-border"></div>
+    <div class="sheet-inner">
+      <div class="meta-row">
+        <span>EXP: ${esc(document.getElementById('expNo').value)}</span>
+        <span>Date: ${esc(document.getElementById('date').value)}</span>
+      </div>
+      <div class="rec-title">${esc(document.getElementById('title').value)} — continued</div>
+      <hr class="rule">
+      <div class="blankpage-body">
+        <div class="blank-rule full"></div>
+      </div>
+      <div class="pagefoot">Page ${pageNum} of ${totalPages}</div>
+    </div>
+  `;
+  buildWatermark(document.getElementById('watermark').value, sheet.querySelector('.watermark'));
+  return sheet;
+}
+
+function renderBlankPages(totalPages){
+  const press = document.getElementById('press');
+  press.querySelectorAll('.sheet[data-blank="1"]').forEach(n=>n.remove());
+  const n = Math.max(0, Math.min(20, parseInt(document.getElementById('blankPages').value, 10) || 0));
+  for(let i=0;i<n;i++){
+    const page = buildBlankPage(i+2, totalPages);
+    page.dataset.blank = '1';
+    press.appendChild(page);
+  }
 }
 
 // ---------- render ----------
 function render(){
   document.getElementById('pv-exp').textContent = 'EXP: ' + (document.getElementById('expNo').value || '');
   document.getElementById('pv-date').textContent = 'Date: ' + (document.getElementById('date').value || '');
-  document.getElementById('pv-title').textContent = document.getElementById('title').value || '';
-
-  // font
-  document.getElementById('sheetInner').style.fontFamily = document.getElementById('fontSelect').value;
+  const titleEl = document.getElementById('pv-title');
+  titleEl.textContent = document.getElementById('title').value || '';
+  applyStyle(titleEl, 'title');
 
   // aim
   const aimEl = document.getElementById('pv-aim');
@@ -718,6 +733,7 @@ function render(){
     aimEl.className = 'body blank-rule short';
     aimEl.textContent = '';
   }
+  applyStyle(aimEl, 'aim');
 
   // algorithm
   const algoEl = document.getElementById('pv-algo');
@@ -728,13 +744,17 @@ function render(){
     algoEl.className = 'body blank-rule tall';
     algoEl.textContent = '';
   }
+  applyStyle(algoEl, 'algo');
 
   // source code
-  document.getElementById('pv-code').textContent = document.getElementById('sourceCode').value;
+  const codeEl = document.getElementById('pv-code');
+  codeEl.textContent = document.getElementById('sourceCode').value;
+  applyStyle(codeEl, 'code');
 
   // outputs
   const outWrap = document.getElementById('pv-outputs');
   outWrap.innerHTML = '';
+  const outStyle = sectionStyle('output');
   outputsWrap.querySelectorAll('.out-block').forEach(block=>{
     const label = block.querySelector('.out-label').value;
     const content = block.querySelector('.out-content').value;
@@ -744,129 +764,45 @@ function render(){
     const sub = document.createElement('div');
     sub.className = 'out-sub';
     sub.textContent = label + ':';
-    const hasText = content.trim().length > 0;
     const box = document.createElement('div');
     box.className = 'out-box';
-    box.textContent = content + (ok && hasText ? '\n\n=== Code Execution Successful ===' : '');
-    if(ok && hasText){
-      // recolor last line green by splitting into spans
-      const lines = box.textContent.split('\n');
-      box.innerHTML = lines.map((l,i)=> i===lines.length-1 && l.startsWith('===')
-        ? `<span class="ok">${esc(l)}</span>` : esc(l)).join('\n');
-    }
-    // if there's no text at all and no photos, skip rendering an empty box
-    if(!hasText && (!block.images || !block.images.length)){
-      box.style.display = 'none';
-    }
+    box.style.fontFamily = outStyle.family;
+    box.style.fontSize = outStyle.size + 'px';
+    const fullText = content + (ok ? '\n\n=== Code Execution Successful ===' : '');
+    const lines = fullText.split('\n');
+    box.innerHTML = lines.map((l,i)=> i===lines.length-1 && l.startsWith('===')
+      ? `<span class="ok">${esc(l)}</span>` : esc(l)).join('\n');
     wrap.appendChild(sub);
     wrap.appendChild(box);
-
-    // attached photos
-    if(block.images && block.images.length){
-      const gallery = document.createElement('div');
-      gallery.className = 'out-photos';
-      block.images.forEach(src=>{
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = 'out-photo-img';
-        gallery.appendChild(img);
-      });
-      wrap.appendChild(gallery);
-    }
-
     outWrap.appendChild(wrap);
   });
 
-  // custom sections
-  const customPreview = document.getElementById('pv-custom-sections');
-  customPreview.innerHTML = '';
-  customWrap.querySelectorAll('.out-block').forEach(block=>{
-    const id = block.dataset.id;
-    const title = block.querySelector('.cs-title').value || 'Section';
-    const mode = csModes[id] || 'text';
-    const content = block.querySelector('.cs-content').value;
-
-    const secDiv = document.createElement('div');
-    secDiv.className = 'blk';
-    const h3 = document.createElement('h3');
-    h3.textContent = title;
-    secDiv.appendChild(h3);
-
-    const bodyDiv = document.createElement('div');
-    if(mode === 'text'){
-      bodyDiv.className = 'body';
-      bodyDiv.textContent = content;
-    } else {
-      bodyDiv.className = 'body blank-rule short';
-    }
-    secDiv.appendChild(bodyDiv);
-
-    const hr = document.createElement('hr');
-    hr.className = 'rule';
-    secDiv.appendChild(hr);
-
-    customPreview.appendChild(secDiv);
-  });
-
   // result
-  document.getElementById('pv-result').textContent = document.getElementById('resultText').value;
+  const resultEl = document.getElementById('pv-result');
+  resultEl.textContent = document.getElementById('resultText').value;
+  applyStyle(resultEl, 'result');
 
-  buildWatermark(document.getElementById('watermark').value);
+  buildWatermark(document.getElementById('watermark').value, document.getElementById('watermarkLayer'));
+
+  // pages
+  const blankCount = Math.max(0, Math.min(20, parseInt(document.getElementById('blankPages').value, 10) || 0));
+  const totalPages = 1 + blankCount;
+  document.getElementById('pv-pagefoot').textContent = `Page 1 of ${totalPages}`;
+  renderBlankPages(totalPages);
 }
 
 // wire up live inputs
-['title','expNo','date','watermark','aimText','algoText','sourceCode','resultText'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', render);
+['title','expNo','date','watermark','aimText','algoText','sourceCode','resultText','blankPages','globalFamily','globalSize'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
 });
-document.getElementById('fontSelect').addEventListener('change', render);
+SECTIONS.forEach(s=>{
+  document.getElementById('sf-'+s.key).addEventListener('change', render);
+  document.getElementById('ss-'+s.key).addEventListener('input', render);
+});
 
 document.getElementById('printBtn').addEventListener('click', ()=>window.print());
-
-// ---------- download as Word (.doc) ----------
-function downloadAsWord(){
-  const inner = document.getElementById('sheetInner').innerHTML;
-  const fontFamily = document.getElementById('fontSelect').value;
-  const titleText = document.getElementById('title').value || 'Lab Record';
-
-  // Self-contained CSS so Word/Google Docs render it reasonably close to the preview
-  const exportStyle = `
-    <style>
-      @page { size: 21cm 29.7cm; margin: 16mm; }
-      body { font-family: ${fontFamily}; font-size: 13.5pt; line-height: 1.55; color:#1a1a1a; }
-      .meta-row { display:flex; justify-content:space-between; font-family:Arial,Helvetica,sans-serif; font-size:11pt; font-weight:bold; }
-      .rec-title { text-align:center; font-family:Arial,Helvetica,sans-serif; font-weight:bold; font-size:13pt; margin:10px 0 8px; }
-      hr.rule, hr.end-rule { border:none; border-top:1.4pt solid #1a1a1a; margin:0 0 16px; }
-      .blk { margin-bottom:16px; }
-      .blk h3 { font-family:Arial,Helvetica,sans-serif; font-size:11.5pt; font-weight:bold; margin:0 0 8px; }
-      .blk .body { white-space:pre-wrap; }
-      .blank-rule.short { height:70px; border-bottom:1px solid #bbb; }
-      .blank-rule.tall { height:180px; border-bottom:1px solid #bbb; }
-      pre.code { font-family:'Courier New',monospace; font-size:10.5pt; white-space:pre-wrap; word-wrap:break-word; padding:10px 12px; background:#fbfbf9; border:1px solid #ddd; }
-      .out-sub { font-family:Arial,Helvetica,sans-serif; font-weight:bold; font-size:11pt; margin:10px 0 6px; }
-      .out-box { background:#f1f1ee; border:1px solid #dcdcd6; padding:10px 12px; font-family:'Courier New',monospace; font-size:10.5pt; white-space:pre-wrap; word-wrap:break-word; }
-      .out-box .ok { color:#2f7d4f; font-style:italic; }
-      .out-photos img { max-width:400px; max-height:280px; border:1px solid #ccc; margin-top:6px; }
-    </style>
-  `;
-
-  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>"
-    + "<head><meta charset='utf-8'><title>" + esc(titleText) + "</title>" + exportStyle + "</head><body>";
-  const footer = "</body></html>";
-  const sourceHTML = header + inner + footer;
-
-  const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-  const safeName = (titleText || 'lab-record').replace(/[^a-z0-9\- ]/gi,'').trim().replace(/\s+/g,'-').toLowerCase() || 'lab-record';
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = safeName + '.doc';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-document.getElementById('downloadDocBtn').addEventListener('click', downloadAsWord);
 
 render();
 </script>
