@@ -315,6 +315,22 @@
     cursor:pointer;
   }
   .printbtn:hover{background:#ffa565;}
+  .wordbtn{
+    width:100%;
+    background:none;
+    color:var(--accent);
+    border:1px solid var(--accent-dim);
+    padding:11px;
+    margin-top:8px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:11.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  .wordbtn:hover{background:var(--accent-dim);color:#fff;}
   .printhint{font-size:10px;color:var(--bench-dim);margin-top:8px;line-height:1.5;}
 
   /* ---------- RIGHT: PRESS / PREVIEW ---------- */
@@ -574,7 +590,7 @@ public class CaesarCipher {
   <div class="field">
     <label>Extra blank ruled pages</label>
     <input type="number" id="blankPages" value="0" min="0" max="20" step="1">
-    <div class="hint">Appends full ruled A4 pages after the record — handy for handwritten workings, diagrams, or a viva page. Each one carries the same header and its own page number.</div>
+    <div class="hint">Appends full ruled A4 pages after the record — handy for handwritten workings, diagrams, or a viva page. Each one is a plain ruled sheet with only the watermark and its own page number.</div>
   </div>
 
   <hr class="divider">
@@ -629,7 +645,8 @@ public class CaesarCipher {
 
   <div class="printbar">
     <button class="printbtn" id="printBtn">Print / Save as PDF</button>
-    <div class="printhint">In the print dialog, set Destination to "Save as PDF". Keep paper A4, margins None, and Background graphics on so watermarks render.</div>
+    <button class="wordbtn" id="wordBtn">Download as Word (.doc)</button>
+    <div class="printhint">For PDF: set Destination to "Save as PDF", paper A4, margins None, and Background graphics on so watermarks render. The .doc export is a Word-readable HTML document with the same content laid out for A4.</div>
   </div>
 </div>
 
@@ -1047,12 +1064,6 @@ function buildBlankPage(pageNum, totalPages){
   sheet.innerHTML =
     '<div class="watermark"></div>' +
     '<div class="sheet-frame"><div class="sheet-inner">' +
-      '<div class="meta-row">' +
-        '<span>EXP: ' + esc(val('expNo')) + '</span>' +
-        '<span>Date: ' + esc(val('date')) + '</span>' +
-      '</div>' +
-      '<div class="rec-title">' + esc(val('title')) + ' &#8212; continued</div>' +
-      '<hr class="rule">' +
       '<div class="blankpage-body"><div class="blank-rule full"></div></div>' +
       '<div class="pagefoot">Page ' + pageNum + ' of ' + totalPages + '</div>' +
     '</div></div>';
@@ -1218,6 +1229,85 @@ function importJson(file){
     }
   };
   reader.readAsText(file);
+}
+
+// ---------- Word (.doc) export ----------
+function exportWord(){
+  const escW = s => esc(String(s == null ? '' : s)).replace(/\n/g, '<br>');
+  const parts = [];
+  const title = val('title') || 'Lab Record';
+  const expNo = val('expNo') || '';
+  const date = val('date') || '';
+  const blankCount = Math.max(0, Math.min(20, parseInt(val('blankPages'), 10) || 0));
+
+  parts.push('<table class="meta"><tr><td>EXP: ' + escW(expNo) + '</td><td style="text-align:right">Date: ' + escW(date) + '</td></tr></table>');
+  parts.push('<h1>' + escW(title) + '</h1>');
+
+  if(modes.aim === 'text'){
+    parts.push('<h2>Aim</h2><p class="body">' + escW(val('aimText')) + '</p>');
+  }else{
+    parts.push('<h2>Aim</h2><div class="blankbox short"></div>');
+  }
+
+  if(modes.algo === 'text'){
+    parts.push('<h2>Algorithm</h2><p class="body">' + escW(val('algoText')) + '</p>');
+  }else{
+    parts.push('<h2>Algorithm</h2><div class="blankbox tall"></div>');
+  }
+
+  parts.push('<h2>Source Code</h2><pre>' + escW(val('sourceCode')) + '</pre>');
+
+  const outBlocks = outputsWrap.querySelectorAll('.out-block');
+  if(outBlocks.length){
+    parts.push('<h2>Output</h2>');
+    outBlocks.forEach(o=>{
+      const label = o.querySelector('.out-label').value;
+      const content = o.querySelector('.out-content').value;
+      const ok = o.querySelector('.out-ok').checked;
+      parts.push('<p class="out-sub"><b>' + escW(label) + ':</b></p>');
+      parts.push('<pre class="outbox">' + escW(content) + (ok ? '<br><br><i>=== Code Execution Successful ===</i>' : '') + '</pre>');
+    });
+  }
+
+  parts.push('<h2>Result</h2><p class="body">' + escW(val('resultText')) + '</p>');
+
+  for(let i = 0; i < blankCount; i++){
+    parts.push('<div class="pagebreak"></div>');
+    parts.push('<div class="blankbox full"></div>');
+  }
+
+  const html =
+    '<!DOCTYPE html>\n' +
+    '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">\n' +
+    '<head>\n<meta charset="utf-8">\n<title>' + escW(title) + '</title>\n' +
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->\n' +
+    '<style>\n' +
+    'body{font-family:"Times New Roman",serif;font-size:13.5pt;line-height:1.55;margin:40px;}\n' +
+    'h1{font-family:Arial,sans-serif;font-size:16pt;text-align:center;margin:12px 0 8px;}\n' +
+    'h2{font-family:Arial,sans-serif;font-size:13pt;margin:14px 0 6px;}\n' +
+    '.meta{width:100%;font-family:Arial,sans-serif;font-size:12.5pt;font-weight:bold;}\n' +
+    'pre{font-family:"Courier New",monospace;font-size:12pt;white-space:pre-wrap;border:1px solid #999;padding:10px 12px;margin:0 0 10px;}\n' +
+    '.outbox{font-family:"Courier New",monospace;font-size:12pt;white-space:pre-wrap;background:#f1f1ee;border:1px solid #999;padding:10px 12px;margin:0 0 10px;}\n' +
+    'p.body{white-space:pre-wrap;margin:0 0 10px;}\n' +
+    'p.out-sub{margin:8px 0 4px;}\n' +
+    '.blankbox{border:1px solid #999;margin:8px 0 12px;}\n' +
+    '.blankbox.short{height:70px;}\n' +
+    '.blankbox.tall{height:180px;}\n' +
+    '.blankbox.full{height:600px;}\n' +
+    '.pagebreak{page-break-after:always;}\n' +
+    '</style>\n</head>\n<body>\n' +
+    parts.join('\n') + '\n' +
+    '</body>\n</html>';
+
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = title.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '_') + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
+  toast('Word document downloaded.', 'ok');
 }
 
 // ---------- Supabase cloud ----------
@@ -1436,6 +1526,7 @@ SECTIONS.forEach(s=>{
 });
 
 $('printBtn').addEventListener('click', ()=> window.print());
+$('wordBtn').addEventListener('click', exportWord);
 
 // ---------- boot ----------
 render();

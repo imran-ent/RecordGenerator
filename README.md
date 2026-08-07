@@ -13,13 +13,14 @@ Fill in your experiment details, code, and sample outputs on the left workbench 
 - **Custom security watermark:** Tiles your roll number, registration ID, or institutional identifier diagonally across every page.
 - **Flexible section modes:** Toggle sections such as Aim or Algorithm between typed text and blank rule-lined areas for manual handwriting.
 - **Code & output formatting:** Styled code blocks and terminal output blocks with an optional "=== Code Execution Successful ===" success line.
-- **Extra blank ruled pages:** Append fully ruled A4 pages (with the same header and page numbering) for workings, diagrams, or a viva page.
+- **Extra blank ruled pages:** Append fully ruled A4 pages (plain sheets with only the watermark and page number) for workings, diagrams, or a viva page.
 - **Per-section typography:** Set a base font and size, then override per section (Title, Aim, Algorithm, Source Code, Output, Result).
 - **Autosave & backup:**
   - Work auto-saves to this browser's `localStorage` and is restored on reload.
   - Export/Import full records as `.json` backup files.
-- **Cloud backup via Supabase:** Save, update, load, and delete records in your own Supabase project.
-- **Save as PDF:** Styled via print CSS targeting standard A4.
+  - **Cloud backup via Supabase:** Save, update, load, and delete records in your own Supabase project.
+  - **Save as PDF:** Styled via print CSS targeting standard A4.
+  - **Download as Word (.doc):** Word-readable HTML document with the full record (headers, Aim, Algorithm, Source Code, Outputs, Result, and blank-page boxes) laid out for A4.
 
 ---
 
@@ -32,10 +33,8 @@ Fill in your experiment details, code, and sample outputs on the left workbench 
    - **Content sections:** Aim, Algorithm, Source Code, Outputs, Result.
    - **Pages:** Optional extra blank ruled pages.
    - **Typography:** Base font/size plus per-section overrides.
-4. Click **Print / Save as PDF**.
-   - Set **Destination** to **Save as PDF**.
-   - Keep **Paper size** on **A4** and **Margins** on **None**.
-   - Enable **Background graphics** so watermarks and output boxes render.
+4. Click **Print / Save as PDF** or **Download as Word (.doc)**.
+   - For PDF: set **Destination** to **Save as PDF**, keep **Paper size** on **A4** and **Margins** on **None**, and enable **Background graphics** so watermarks and output boxes render.
 5. Optionally press **Connect** under *Cloud Backup* to store records in Supabase.
 
 ---
