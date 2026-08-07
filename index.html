@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Record Press — generate, preview, and back up print-ready lab records. Includes cloud backup via Supabase.">
+<meta name="theme-color" content="#14171c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2314171c'/%3E%3Cpath d='M7 8h18M7 14h18M7 20h18' stroke='%23ff8a3d' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <title>Record Press — Lab Record Generator</title>
 <style>
   :root{
@@ -17,6 +20,12 @@
     --ink:#1a1a1a;
     --rule:#2a2a2a;
     --success:#2f7d4f;
+    --danger:#e05a4e;
+    --sheet-w:210mm;
+    --sheet-h:297mm;
+    --frame-h:272.8mm;
+    --sheet-inset:12mm;
+    --sheet-b:1.4px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;height:100%;}
@@ -39,6 +48,13 @@
     overflow-y:auto;
     height:100vh;
   }
+  .bench-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:22px;
+  }
   .bench h1{
     font-size:15px;
     letter-spacing:.08em;
@@ -49,9 +65,23 @@
   .bench .tag{
     font-size:11px;
     color:var(--bench-dim);
-    margin:0 0 22px;
+    margin:0;
     line-height:1.5;
   }
+  .newbtn{
+    flex:none;
+    background:none;
+    border:1px solid var(--bench-line);
+    color:var(--bench-dim);
+    padding:6px 11px;
+    border-radius:3px;
+    font-family:inherit;
+    font-size:10.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  .newbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
   .field{margin-bottom:16px;}
   .field label{
     display:block;
@@ -65,7 +95,7 @@
   .row2 .field{flex:1;}
   .row3{display:flex;gap:10px;}
   .row3 .field{flex:1;}
-  input[type=text],input[type=number],textarea,select{
+  input[type=text],input[type=number],input[type=password],textarea,select{
     width:100%;
     background:#0f1216;
     border:1px solid var(--bench-line);
@@ -76,6 +106,7 @@
     border-radius:3px;
     resize:vertical;
   }
+  input[type=password]{letter-spacing:.05em;}
   select{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--bench-dim) 50%),linear-gradient(135deg,var(--bench-dim) 50%,transparent 50%);background-position:calc(100% - 16px) center,calc(100% - 11px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px;}
   input:focus,textarea:focus,select:focus{
     outline:none;
@@ -149,7 +180,7 @@
     cursor:pointer;
     font-size:14px;
   }
-  .out-block .remove:hover{color:#e05a4e;}
+  .out-block .remove:hover{color:var(--danger);}
   .checkline{
     display:flex;align-items:center;gap:7px;
     font-size:10.5px;color:var(--bench-dim);
@@ -171,6 +202,64 @@
     text-transform:uppercase;
   }
   .addbtn:hover{border-color:var(--accent-dim);color:var(--accent);}
+  .addbtn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ---------- cloud backup panel ---------- */
+  .sb-status{font-size:11px;margin-top:10px;line-height:1.5;color:var(--bench-dim);word-break:break-word;}
+  .sb-status.ok{color:var(--success);}
+  .sb-status.err{color:var(--danger);}
+  .sb-status.off{color:var(--bench-dim);}
+  .savebtn{
+    width:100%;
+    background:var(--accent-dim);
+    color:#fff;
+    border:none;
+    padding:12px;
+    font-family:inherit;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    border-radius:4px;
+    cursor:pointer;
+    margin-bottom:10px;
+  }
+  .savebtn:hover{background:var(--accent);color:#1a1108;}
+  .savebtn:disabled{opacity:.5;cursor:wait;}
+  .sb-list{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .sb-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    border:1px solid var(--bench-line);
+    border-radius:4px;
+    padding:8px 10px;
+    background:#0f1216;
+  }
+  .sb-item.active{border-color:var(--accent-dim);}
+  .sb-item-info{min-width:0;}
+  .sb-item-name{font-size:12px;color:var(--bench-text);word-break:break-word;}
+  .sb-item-date{font-size:10px;color:var(--bench-dim);margin-top:2px;}
+  .sb-item-actions{display:flex;gap:6px;flex:none;}
+  .mini{
+    background:var(--accent-dim);
+    color:#fff;
+    border:none;
+    padding:5px 10px;
+    border-radius:3px;
+    font-family:inherit;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    cursor:pointer;
+  }
+  .mini:hover{background:var(--accent);color:#1a1108;}
+  .mini.danger{background:#3a2a2a;color:var(--danger);}
+  .mini.danger:hover{background:var(--danger);color:#fff;}
+  .mini:disabled{opacity:.5;cursor:not-allowed;}
+  .sb-empty{font-size:11px;color:var(--bench-dim);padding:6px 2px;line-height:1.5;}
+  .sb-util{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bench-line);}
 
   /* ---------- typography panel ---------- */
   .style-table{
@@ -243,31 +332,35 @@
     gap:28px;
   }
   .sheet{
-    width:210mm;
-    min-height:297mm;
+    width:var(--sheet-w);
+    min-height:var(--sheet-h);
     background:var(--paper);
     color:var(--ink);
     box-shadow:0 20px 60px rgba(0,0,0,.5);
     position:relative;
     flex:none;
   }
-  .sheet-border{
-    position:absolute;
-    top:12mm;left:12mm;right:12mm;bottom:12mm;
-    border:1.4px solid var(--ink);
-    pointer-events:none;
+  .sheet-frame{
+    position:relative;
+    z-index:1;
+    margin:var(--sheet-inset);
+    height:var(--frame-h);
+    border:var(--sheet-b) solid var(--ink);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
   }
   .sheet-inner{
-    position:relative;
-    padding:16mm 16mm 18mm;
+    flex:1;
+    padding:4mm 4mm 6mm;
     font-family:'Times New Roman',Georgia,serif;
     font-size:13.5px;
     line-height:1.55;
-    z-index:1;
-    min-height:calc(297mm - 34mm);
     display:flex;
     flex-direction:column;
+    overflow:hidden;
   }
+  .page-content{flex:1;overflow:hidden;}
   .watermark{
     position:absolute;
     inset:0;
@@ -337,7 +430,6 @@
   .out-box .ok{color:var(--success);font-style:italic;}
   .end-rule{border:none;border-top:1.4px solid var(--ink);margin:18px 0 0;}
   .pagefoot{
-    margin-top:auto;
     padding-top:10px;
     text-align:center;
     font-family:Arial,Helvetica,sans-serif;
@@ -346,23 +438,67 @@
   }
   .blankpage-body{flex:1;display:flex;flex-direction:column;}
 
+  /* ---------- toasts ---------- */
+  #toasts{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    z-index:1000;
+    align-items:center;
+    pointer-events:none;
+  }
+  .toast{
+    background:#1b1f26;
+    border:1px solid var(--bench-line);
+    color:var(--bench-text);
+    padding:10px 16px;
+    border-radius:4px;
+    font-size:12px;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+    opacity:0;
+    transform:translateY(10px);
+    transition:all .25s ease;
+    max-width:80vw;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.ok{border-left:3px solid var(--success);}
+  .toast.err{border-left:3px solid var(--danger);}
+  .toast.warn{border-left:3px solid var(--accent);}
+
   @media print{
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
     body{background:#fff;}
     .bench, .press{background:#fff;padding:0;}
     .bench{display:none;}
     .press{display:block;padding:0;height:auto;overflow:visible;gap:0;}
-    .sheet{box-shadow:none;margin:0 auto;width:auto;min-height:0;page-break-after:always;}
+    .sheet{
+      box-shadow:none;
+      width:var(--sheet-w);
+      min-height:0;
+      background:#fff;
+      page-break-after:always;
+    }
     .sheet:last-child{page-break-after:auto;}
     @page{size:A4;margin:0;}
     .blk, .out-block-print{page-break-inside:avoid;}
+    #toasts{display:none;}
   }
 </style>
 </head>
 <body>
 
 <div class="bench">
-  <h1>Record Press</h1>
-  <p class="tag">Fill this in once — get a print-ready lab record on the right. Print it, or "Save as PDF" from the print dialog.</p>
+  <div class="bench-head">
+    <div>
+      <h1>Record Press</h1>
+      <p class="tag">Fill this in once — get a print-ready lab record on the right. Work auto-saves in this browser; push it to the cloud any time.</p>
+    </div>
+    <button class="newbtn" id="resetBtn" title="Discard current work and start a fresh record">New</button>
+  </div>
 
   <div class="field">
     <label>Experiment Title</label>
@@ -461,146 +597,142 @@ public class CaesarCipher {
     <div class="hint">"Use base style" follows the settings above. Section headings (Aim, Algorithm…) stay bold Arial as a fixed structural label — this only changes the text underneath.</div>
   </div>
 
-  <div class="printbar">
-    <button class="printbtn" id="printBtn">Print / Save as PDF</button>
-    <div class="printhint">In the print dialog, set Destination to "Save as PDF" for a file you can submit.</div>
+  <hr class="divider">
+  <div class="section-label">Cloud Backup · Supabase</div>
+  <div class="field">
+    <label>Supabase URL</label>
+    <input type="text" id="sbUrl" placeholder="https://your-project.supabase.co" autocomplete="off" spellcheck="false">
   </div>
-</div>
+  <div class="field">
+    <label>Supabase Anon Key</label>
+    <input type="password" id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIs..." autocomplete="off" spellcheck="false">
+    <div class="hint">Kept only in this browser (localStorage). Create the <code>records</code> table with the SQL shown in the README, then press Connect.</div>
+  </div>
+  <button class="addbtn" id="sbConnect">Connect & Save Settings</button>
+  <div class="sb-status" id="sbStatus"></div>
 
-<div class="press" id="press">
-  <div class="sheet" id="sheet">
-    <div class="watermark" id="watermarkLayer"></div>
-    <div class="sheet-border"></div>
-    <div class="sheet-inner" id="sheetInner">
-      <div class="meta-row">
-        <span id="pv-exp">EXP: 1</span>
-        <span id="pv-date">Date: —</span>
-      </div>
-      <div class="rec-title" id="pv-title"></div>
-      <hr class="rule">
-
-      <div class="blk">
-        <h3>Aim</h3>
-        <div class="body" id="pv-aim"></div>
-      </div>
-      <hr class="rule">
-
-      <div class="blk">
-        <h3>Algorithm</h3>
-        <div class="body" id="pv-algo"></div>
-      </div>
-      <hr class="rule">
-
-      <div class="blk">
-        <h3>Source Code</h3>
-        <pre class="code" id="pv-code"></pre>
-      </div>
-
-      <div class="blk">
-        <h3>Output</h3>
-        <div id="pv-outputs"></div>
-      </div>
-
-      <hr class="end-rule">
-      <div class="blk" style="margin-top:16px;">
-        <h3>Result</h3>
-        <div class="body" id="pv-result"></div>
-      </div>
-
-      <div class="pagefoot" id="pv-pagefoot">Page 1</div>
+  <div id="sbPanel" style="display:none">
+    <div style="height:12px"></div>
+    <div class="field">
+      <label>Record name</label>
+      <input type="text" id="sbRecordName" placeholder="e.g. Caesar Cipher – Exp 1">
+    </div>
+    <button class="savebtn" id="sbSave">Save to cloud</button>
+    <div class="section-label" style="font-size:10px;margin:14px 0 8px;">Saved records</div>
+    <div class="sb-list" id="sbList"></div>
+    <div class="sb-util">
+      <button class="mini" id="exportBtn" style="flex:1">Backup .json</button>
+      <button class="mini" id="importBtn" style="flex:1">Restore .json</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
     </div>
   </div>
+
+  <div class="printbar">
+    <button class="printbtn" id="printBtn">Print / Save as PDF</button>
+    <div class="printhint">In the print dialog, set Destination to "Save as PDF". Keep paper A4, margins None, and Background graphics on so watermarks render.</div>
+  </div>
 </div>
 
+<div class="press" id="press"></div>
+
+<div id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror="window.__sbLoadError=true"></script>
 <script>
-// ---------- helpers ----------
+(function(){
+'use strict';
+
+// ---------- tiny helpers ----------
+function $(id){ return document.getElementById(id); }
 function esc(s){
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+function setVal(id, val){ const el = $(id); if(el) el.value = (val == null ? '' : val); }
+function val(id){ const el = $(id); return el ? el.value : ''; }
+function toast(msg, type){
+  const host = $('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'info');
+  t.textContent = msg;
+  host.appendChild(t);
+  requestAnimationFrame(()=> requestAnimationFrame(()=> t.classList.add('show')));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=> t.remove(), 400); }, 3400);
 }
 
 // ---------- default date ----------
 (function(){
   const d = new Date();
-  const s = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-  document.getElementById('date').value = s;
+  const s = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+  $('date').value = s;
 })();
 
 // ---------- toggle logic (aim / algorithm: text vs blank) ----------
-const modes = {aim:'text', algo:'text'};
+const modes = { aim:'text', algo:'text' };
+function setMode(target, mode){
+  modes[target] = mode;
+  const t = document.querySelector('.toggle[data-target="' + target + '"]');
+  if(!t) return;
+  t.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+  $(target + '-text-wrap').style.display = (mode === 'text') ? 'block' : 'none';
+}
 document.querySelectorAll('.toggle').forEach(t=>{
   const target = t.dataset.target;
   t.querySelectorAll('button').forEach(b=>{
     b.addEventListener('click', ()=>{
       t.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
       b.classList.add('active');
-      modes[target] = b.dataset.mode;
-      document.getElementById(target+'-text-wrap').style.display = (b.dataset.mode==='text') ? 'block' : 'none';
+      setMode(target, b.dataset.mode);
       render();
     });
   });
 });
 
 // ---------- output blocks ----------
-const outputsWrap = document.getElementById('outputs');
+const outputsWrap = $('outputs');
 let outCount = 0;
 
 function addOutputBlock(label, content, showOk){
   outCount++;
-  const id = 'out'+outCount;
   const div = document.createElement('div');
   div.className = 'out-block';
-  div.dataset.id = id;
-  div.innerHTML = `
-    <button class="remove" title="Remove">✕</button>
-    <div class="field">
-      <label>Label</label>
-      <input type="text" class="out-label" value="${esc(label)}">
-    </div>
-    <div class="field">
-      <label>Output text</label>
-      <textarea class="out-content" rows="5">${esc(content)}</textarea>
-    </div>
-    <div class="checkline">
-      <input type="checkbox" class="out-ok" ${showOk?'checked':''}>
-      <span>Append "=== Code Execution Successful ===" line</span>
-    </div>
-  `;
+  div.innerHTML =
+    '<button class="remove" type="button" title="Remove">&#10005;</button>' +
+    '<div class="field"><label>Label</label><input type="text" class="out-label" value="' + esc(label) + '"></div>' +
+    '<div class="field"><label>Output text</label><textarea class="out-content" rows="5">' + esc(content) + '</textarea></div>' +
+    '<div class="checkline"><input type="checkbox" class="out-ok"' + (showOk ? ' checked' : '') + '>' +
+    '<span>Append "=== Code Execution Successful ===" line</span></div>';
   outputsWrap.appendChild(div);
   div.querySelector('.remove').addEventListener('click', ()=>{ div.remove(); render(); });
   div.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input', render));
+  div.querySelector('.out-ok').addEventListener('change', render);
 }
 
-document.getElementById('addOutput').addEventListener('click', ()=>{
-  addOutputBlock('Run '+(outCount+1), '', true);
+$('addOutput').addEventListener('click', ()=>{
+  addOutputBlock('Run ' + (outCount + 1), '', true);
   render();
 });
 
 // seed with two blocks matching the sample
-addOutputBlock('Encryption', `Choose any one!
-1. Encryption
-2. Decryption
-Enter your choice: 1
-Enter a message to encrypt: IMRAN
-Enter key: 4
-Encrypted message: MQVER`, true);
-addOutputBlock('Decryption', `Choose any one!
-1. Encryption
-2. Decryption
-Enter your choice: 2
-Enter a message to decrypt: ImRaN
-Enter key: 4
-Decrypted message: EiNwJ`, true);
+addOutputBlock('Encryption',
+  'Choose any one!\n1. Encryption\n2. Decryption\nEnter your choice: 1\nEnter a message to encrypt: IMRAN\nEnter key: 4\nEncrypted message: MQVER', true);
+addOutputBlock('Decryption',
+  'Choose any one!\n1. Encryption\n2. Decryption\nEnter your choice: 2\nEnter a message to decrypt: ImRaN\nEnter key: 4\nDecrypted message: EiNwJ', true);
 
 // ---------- watermark ----------
 function buildWatermark(text, targetEl){
   const t = esc(text || '');
-  const svg = `
-    <svg xmlns='http://www.w3.org/2000/svg' width='420' height='520'>
-      <text x='210' y='260' font-family='Arial' font-size='30' fill='rgba(0,0,0,0.10)'
-        text-anchor='middle' transform='rotate(-32 210 260)'>${t}</text>
-    </svg>`;
+  const svg =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='420' height='520'>" +
+    "<text x='210' y='260' font-family='Arial' font-size='30' fill='rgba(0,0,0,0.10)'" +
+    " text-anchor='middle' transform='rotate(-32 210 260)'>" + t + "</text></svg>";
   const uri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-  targetEl.style.backgroundImage = `url("${uri}")`;
+  targetEl.style.backgroundImage = 'url("' + uri + '")';
 }
 
 // ---------- typography ----------
@@ -616,12 +748,12 @@ const FONTS = [
 ];
 
 const SECTIONS = [
-  {key:'title', label:'Title',        target:'pv-title',   family:"Arial, Helvetica, sans-serif",        size:14.5},
-  {key:'aim',   label:'Aim',          target:'pv-aim',      family:'inherit',                              size:''},
-  {key:'algo',  label:'Algorithm',    target:'pv-algo',     family:'inherit',                              size:''},
-  {key:'code',  label:'Source Code',  target:'pv-code',     family:"'Courier New', Courier, monospace",   size:12},
-  {key:'output',label:'Output',       target:'pv-outputs',  family:"'Courier New', Courier, monospace",   size:12},
-  {key:'result',label:'Result',       target:'pv-result',   family:'inherit',                              size:''}
+  {key:'title', label:'Title',        target:'pv-title',  family:"Arial, Helvetica, sans-serif",      size:14.5},
+  {key:'aim',   label:'Aim',          target:'pv-aim',    family:'inherit',                            size:''},
+  {key:'algo',  label:'Algorithm',    target:'pv-algo',   family:'inherit',                            size:''},
+  {key:'code',  label:'Source Code',  target:'pv-code',   family:"'Courier New', Courier, monospace", size:12},
+  {key:'output',label:'Output',       target:'pv-outputs',family:"'Courier New', Courier, monospace", size:12},
+  {key:'result',label:'Result',       target:'pv-result', family:'inherit',                            size:''}
 ];
 
 function populateFontSelect(sel, includeInherit){
@@ -640,35 +772,32 @@ function populateFontSelect(sel, includeInherit){
   });
 }
 
-// global family select
-const globalFamilySel = document.getElementById('globalFamily');
+const globalFamilySel = $('globalFamily');
 populateFontSelect(globalFamilySel, false);
 globalFamilySel.value = "'Times New Roman', Times, serif";
 
-// per-section rows
-const styleTable = document.getElementById('styleTable');
+const styleTable = $('styleTable');
 SECTIONS.forEach(s=>{
   const row = document.createElement('div');
   row.className = 'style-row';
-  row.innerHTML = `
-    <span class="sname">${s.label}</span>
-    <select id="sf-${s.key}"></select>
-    <input type="number" id="ss-${s.key}" min="8" max="24" step="0.5" placeholder="—">
-  `;
+  row.innerHTML =
+    '<span class="sname">' + s.label + '</span>' +
+    '<select id="sf-' + s.key + '"></select>' +
+    '<input type="number" id="ss-' + s.key + '" min="8" max="24" step="0.5" placeholder="&#8212;">';
   styleTable.appendChild(row);
-  const sel = row.querySelector(`#sf-${s.key}`);
+  const sel = row.querySelector('#sf-' + s.key);
   populateFontSelect(sel, true);
   sel.value = s.family;
   if(s.size !== ''){
-    row.querySelector(`#ss-${s.key}`).value = s.size;
+    row.querySelector('#ss-' + s.key).value = s.size;
   }
 });
 
 function sectionStyle(key){
   const globalFamily = globalFamilySel.value;
-  const globalSize = parseFloat(document.getElementById('globalSize').value) || 13.5;
-  const famSel = document.getElementById('sf-'+key);
-  const sizeInput = document.getElementById('ss-'+key);
+  const globalSize = parseFloat(val('globalSize')) || 13.5;
+  const famSel = $('sf-' + key);
+  const sizeInput = $('ss-' + key);
   const family = (famSel && famSel.value !== 'inherit') ? famSel.value : globalFamily;
   const size = (sizeInput && sizeInput.value !== '') ? parseFloat(sizeInput.value) : globalSize;
   return {family, size};
@@ -681,130 +810,660 @@ function applyStyle(el, key){
   el.style.fontSize = st.size + 'px';
 }
 
-// ---------- extra blank pages ----------
-function buildBlankPage(pageNum, totalPages){
-  const sheet = document.createElement('div');
-  sheet.className = 'sheet';
-  sheet.innerHTML = `
-    <div class="watermark"></div>
-    <div class="sheet-border"></div>
-    <div class="sheet-inner">
-      <div class="meta-row">
-        <span>EXP: ${esc(document.getElementById('expNo').value)}</span>
-        <span>Date: ${esc(document.getElementById('date').value)}</span>
-      </div>
-      <div class="rec-title">${esc(document.getElementById('title').value)} — continued</div>
-      <hr class="rule">
-      <div class="blankpage-body">
-        <div class="blank-rule full"></div>
-      </div>
-      <div class="pagefoot">Page ${pageNum} of ${totalPages}</div>
-    </div>
-  `;
-  buildWatermark(document.getElementById('watermark').value, sheet.querySelector('.watermark'));
-  return sheet;
+// ---------- measurement probe (offscreen page used to measure block heights) ----------
+const probe = document.createElement('div');
+probe.className = 'sheet';
+probe.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
+probe.innerHTML =
+  '<div class="sheet-frame"><div class="sheet-inner">' +
+    '<div class="meta-row"><span>x</span><span>x</span></div>' +
+    '<div class="rec-title">x</div><hr class="rule">' +
+    '<div class="page-content"></div>' +
+    '<div class="pagefoot">x</div>' +
+  '</div></div>';
+document.body.appendChild(probe);
+const probeContent = probe.querySelector('.page-content');
+
+// Unconstrained measuring box (same width/font as a real page-content) so a
+// block's own height is measured, not the fixed-height probe's client area.
+const measureBox = document.createElement('div');
+measureBox.className = 'page-content';
+measureBox.style.cssText = 'position:fixed;left:-99999px;top:0;flex:none;height:auto;overflow:visible;pointer-events:none;';
+measureBox.style.width = probeContent.getBoundingClientRect().width + 'px';
+const pcStyle = getComputedStyle(probeContent);
+measureBox.style.fontFamily = pcStyle.fontFamily;
+measureBox.style.fontSize = pcStyle.fontSize;
+measureBox.style.lineHeight = pcStyle.lineHeight;
+document.body.appendChild(measureBox);
+
+function measured(el){
+  measureBox.appendChild(el);
+  const margin = parseFloat(getComputedStyle(el).marginBottom) || 0;
+  const h = el.getBoundingClientRect().height + margin;
+  measureBox.removeChild(el);
+  return h;
 }
 
-function renderBlankPages(totalPages){
-  const press = document.getElementById('press');
-  press.querySelectorAll('.sheet[data-blank="1"]').forEach(n=>n.remove());
-  const n = Math.max(0, Math.min(20, parseInt(document.getElementById('blankPages').value, 10) || 0));
-  for(let i=0;i<n;i++){
-    const page = buildBlankPage(i+2, totalPages);
-    page.dataset.blank = '1';
-    press.appendChild(page);
-  }
+function getContentH(){
+  const metaExp = 'EXP: ' + (val('expNo') || '');
+  const metaDate = 'Date: ' + (val('date') || '');
+  probe.querySelector('.meta-row span:first-child').textContent = metaExp;
+  probe.querySelector('.meta-row span:last-child').textContent = metaDate;
+  probe.querySelector('.rec-title').textContent = val('title');
+  return Math.floor(probeContent.getBoundingClientRect().height) - 2;
 }
 
-// ---------- render ----------
-function render(){
-  document.getElementById('pv-exp').textContent = 'EXP: ' + (document.getElementById('expNo').value || '');
-  document.getElementById('pv-date').textContent = 'Date: ' + (document.getElementById('date').value || '');
-  const titleEl = document.getElementById('pv-title');
-  titleEl.textContent = document.getElementById('title').value || '';
-  applyStyle(titleEl, 'title');
+// ---------- block builders ----------
+function makeRule(){
+  const r = document.createElement('hr');
+  r.className = 'rule';
+  return r;
+}
 
-  // aim
-  const aimEl = document.getElementById('pv-aim');
-  if(modes.aim === 'text'){
-    aimEl.className = 'body';
-    aimEl.textContent = document.getElementById('aimText').value;
-  } else {
-    aimEl.className = 'body blank-rule short';
-    aimEl.textContent = '';
-  }
-  applyStyle(aimEl, 'aim');
+function textBlock(kind, text, label, withRule){
+  const styleKey = (kind === 'aim') ? 'aim' : (kind === 'algo') ? 'algo' : 'result';
+  const lines = String(text || '').split('\n');
+  const makeEl = (txtLines, isLast)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'blk';
+    if(withRule) wrap.appendChild(makeRule());
+    const h = document.createElement('h3');
+    h.textContent = label;
+    wrap.appendChild(h);
+    const body = document.createElement('div');
+    body.className = 'body';
+    body.textContent = (typeof txtLines === 'string') ? txtLines : txtLines.join('\n');
+    applyStyle(body, styleKey);
+    wrap.appendChild(body);
+    return wrap;
+  };
+  return { el: makeEl(lines.join('\n'), true), splittable: true, lines: lines, makeEl: makeEl };
+}
 
-  // algorithm
-  const algoEl = document.getElementById('pv-algo');
-  if(modes.algo === 'text'){
-    algoEl.className = 'body';
-    algoEl.textContent = document.getElementById('algoText').value;
-  } else {
-    algoEl.className = 'body blank-rule tall';
-    algoEl.textContent = '';
-  }
-  applyStyle(algoEl, 'algo');
+function blankBlock(label, size){
+  const wrap = document.createElement('div');
+  wrap.className = 'blk';
+  const h = document.createElement('h3');
+  h.textContent = label;
+  wrap.appendChild(h);
+  const body = document.createElement('div');
+  body.className = 'body blank-rule ' + size;
+  wrap.appendChild(body);
+  return { el: wrap, splittable: false };
+}
 
-  // source code
-  const codeEl = document.getElementById('pv-code');
-  codeEl.textContent = document.getElementById('sourceCode').value;
-  applyStyle(codeEl, 'code');
+function codeBlock(text){
+  const lines = String(text || '').split('\n');
+  const makeEl = (txtLines)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'blk';
+    wrap.appendChild(makeRule());
+    const h = document.createElement('h3');
+    h.textContent = 'Source Code';
+    wrap.appendChild(h);
+    const pre = document.createElement('pre');
+    pre.className = 'code';
+    pre.textContent = (typeof txtLines === 'string') ? txtLines : txtLines.join('\n');
+    applyStyle(pre, 'code');
+    wrap.appendChild(pre);
+    return wrap;
+  };
+  return { el: makeEl(lines.join('\n')), splittable: true, lines: lines, makeEl: makeEl };
+}
 
-  // outputs
-  const outWrap = document.getElementById('pv-outputs');
-  outWrap.innerHTML = '';
-  const outStyle = sectionStyle('output');
-  outputsWrap.querySelectorAll('.out-block').forEach(block=>{
-    const label = block.querySelector('.out-label').value;
-    const content = block.querySelector('.out-content').value;
-    const ok = block.querySelector('.out-ok').checked;
+function outputHeading(){
+  const wrap = document.createElement('div');
+  wrap.className = 'blk';
+  wrap.appendChild(makeRule());
+  const h = document.createElement('h3');
+  h.textContent = 'Output';
+  wrap.appendChild(h);
+  return { el: wrap, splittable: false };
+}
+
+function outputBlock(label, content, ok){
+  const st = sectionStyle('output');
+  const baseLines = String(content || '').split('\n');
+  const makeEl = (txtLines, isLast)=>{
     const wrap = document.createElement('div');
     wrap.className = 'out-block-print';
     const sub = document.createElement('div');
     sub.className = 'out-sub';
-    sub.textContent = label + ':';
+    sub.textContent = (label || '') + ':';
+    wrap.appendChild(sub);
     const box = document.createElement('div');
     box.className = 'out-box';
-    box.style.fontFamily = outStyle.family;
-    box.style.fontSize = outStyle.size + 'px';
-    const fullText = content + (ok ? '\n\n=== Code Execution Successful ===' : '');
-    const lines = fullText.split('\n');
-    box.innerHTML = lines.map((l,i)=> i===lines.length-1 && l.startsWith('===')
-      ? `<span class="ok">${esc(l)}</span>` : esc(l)).join('\n');
-    wrap.appendChild(sub);
+    box.style.fontFamily = st.family;
+    box.style.fontSize = st.size + 'px';
+    const text = (typeof txtLines === 'string') ? txtLines : txtLines.join('\n');
+    const fullText = text + (ok && isLast ? '\n\n=== Code Execution Successful ===' : '');
+    const L = fullText.split('\n');
+    const lastI = L.length - 1;
+    box.innerHTML = L.map((l, i)=> (i === lastI && l.indexOf('===') === 0)
+      ? '<span class="ok">' + esc(l) + '</span>' : esc(l)).join('\n');
     wrap.appendChild(box);
-    outWrap.appendChild(wrap);
-  });
-
-  // result
-  const resultEl = document.getElementById('pv-result');
-  resultEl.textContent = document.getElementById('resultText').value;
-  applyStyle(resultEl, 'result');
-
-  buildWatermark(document.getElementById('watermark').value, document.getElementById('watermarkLayer'));
-
-  // pages
-  const blankCount = Math.max(0, Math.min(20, parseInt(document.getElementById('blankPages').value, 10) || 0));
-  const totalPages = 1 + blankCount;
-  document.getElementById('pv-pagefoot').textContent = `Page 1 of ${totalPages}`;
-  renderBlankPages(totalPages);
+    return wrap;
+  };
+  return { el: makeEl(baseLines.join('\n'), true), splittable: true, lines: baseLines, makeEl: makeEl };
 }
 
-// wire up live inputs
-['title','expNo','date','watermark','aimText','algoText','sourceCode','resultText','blankPages','globalFamily','globalSize'].forEach(id=>{
-  const el = document.getElementById(id);
+// ---------- pagination ----------
+function splitBlock(block, contentH){
+  const lines = block.lines;
+  const parts = [];
+  let curLines = [];
+  const n = lines.length;
+  for(let i = 0; i < n; i++){
+    const test = curLines.concat(lines[i]);
+    if(measured(block.makeEl(test.join('\n'), false)) <= contentH || curLines.length === 0){
+      curLines = test;
+    } else {
+      parts.push(curLines.slice());
+      curLines = [lines[i]];
+    }
+  }
+  if(curLines.length) parts.push(curLines.slice());
+  return parts.map((chunk, idx)=> {
+    const last = (idx === parts.length - 1);
+    const el = block.makeEl(chunk.join('\n'), last);
+    return { make: ()=> block.makeEl(chunk.join('\n'), last), h: measured(el) };
+  });
+}
+
+function paginate(blocks, contentH){
+  const pages = [];
+  let cur = [];
+  let curUsed = 0;
+  const flush = ()=>{
+    if(cur.length){ pages.push(cur); cur = []; curUsed = 0; }
+  };
+  blocks.forEach(b=>{
+    let items;
+    if(b.h > contentH && b.splittable){
+      items = splitBlock(b, contentH);
+    } else {
+      items = [{ make: ()=> b.el, h: b.h }];
+    }
+    items.forEach(it=>{
+      if(curUsed + it.h <= contentH || curUsed === 0){
+        cur.push(it.make());
+        curUsed += it.h;
+      } else {
+        flush();
+        cur.push(it.make());
+        curUsed = it.h;
+      }
+    });
+  });
+  flush();
+  return pages;
+}
+
+// ---------- page builders ----------
+function buildRecordSheets(pages, totalPages){
+  const metaExp = 'EXP: ' + (val('expNo') || '');
+  const metaDate = 'Date: ' + (val('date') || '');
+  const title = val('title') || '';
+  const watermark = val('watermark');
+  return pages.map((els, idx)=>{
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    const wm = document.createElement('div');
+    wm.className = 'watermark';
+    buildWatermark(watermark, wm);
+    const frame = document.createElement('div');
+    frame.className = 'sheet-frame';
+    const inner = document.createElement('div');
+    inner.className = 'sheet-inner';
+    const meta = document.createElement('div');
+    meta.className = 'meta-row';
+    meta.innerHTML = '<span>' + esc(metaExp) + '</span><span>' + esc(metaDate) + '</span>';
+    const rt = document.createElement('div');
+    rt.className = 'rec-title';
+    rt.textContent = title;
+    applyStyle(rt, 'title');
+    const rule = makeRule();
+    const content = document.createElement('div');
+    content.className = 'page-content';
+    els.forEach(e=> content.appendChild(e));
+    const foot = document.createElement('div');
+    foot.className = 'pagefoot';
+    foot.textContent = 'Page ' + (idx + 1) + ' of ' + totalPages;
+    inner.appendChild(meta);
+    inner.appendChild(rt);
+    inner.appendChild(rule);
+    inner.appendChild(content);
+    inner.appendChild(foot);
+    frame.appendChild(inner);
+    sheet.appendChild(wm);
+    sheet.appendChild(frame);
+    return sheet;
+  });
+}
+
+function buildBlankPage(pageNum, totalPages){
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.innerHTML =
+    '<div class="watermark"></div>' +
+    '<div class="sheet-frame"><div class="sheet-inner">' +
+      '<div class="meta-row">' +
+        '<span>EXP: ' + esc(val('expNo')) + '</span>' +
+        '<span>Date: ' + esc(val('date')) + '</span>' +
+      '</div>' +
+      '<div class="rec-title">' + esc(val('title')) + ' &#8212; continued</div>' +
+      '<hr class="rule">' +
+      '<div class="blankpage-body"><div class="blank-rule full"></div></div>' +
+      '<div class="pagefoot">Page ' + pageNum + ' of ' + totalPages + '</div>' +
+    '</div></div>';
+  buildWatermark(val('watermark'), sheet.querySelector('.watermark'));
+  return sheet;
+}
+
+// ---------- render ----------
+function buildBlocks(){
+  const blocks = [];
+  const add = b => { b.h = measured(b.el); blocks.push(b); };
+
+  if(modes.aim === 'text'){
+    add(textBlock('aim', val('aimText'), 'Aim', false));
+  } else {
+    add(blankBlock('Aim', 'short'));
+  }
+
+  if(modes.algo === 'text'){
+    add(textBlock('algo', val('algoText'), 'Algorithm', true));
+  } else {
+    add(blankBlock('Algorithm', 'tall'));
+  }
+
+  add(codeBlock(val('sourceCode')));
+
+  const outBlocks = outputsWrap.querySelectorAll('.out-block');
+  if(outBlocks.length){
+    add(outputHeading());
+    outBlocks.forEach(o=>{
+      add(outputBlock(o.querySelector('.out-label').value, o.querySelector('.out-content').value, o.querySelector('.out-ok').checked));
+    });
+  }
+
+  add(textBlock('result', val('resultText'), 'Result', true));
+  return blocks;
+}
+
+function render(){
+  const press = $('press');
+  press.querySelectorAll('.sheet').forEach(n=>n.remove());
+
+  const blankCount = Math.max(0, Math.min(20, parseInt(val('blankPages'), 10) || 0));
+  const blocks = buildBlocks();
+  const contentH = getContentH();
+  const pages = paginate(blocks, contentH);
+  const totalPages = pages.length + blankCount;
+  const recSheets = buildRecordSheets(pages, totalPages);
+  recSheets.forEach(s=> press.appendChild(s));
+  for(let i = 0; i < blankCount; i++){
+    press.appendChild(buildBlankPage(pages.length + i + 1, totalPages));
+  }
+
+  scheduleAutosave();
+}
+
+// ---------- state: collect / restore ----------
+function collectState(){
+  const state = {
+    version: 2,
+    title: val('title'),
+    expNo: val('expNo'),
+    date: val('date'),
+    watermark: val('watermark'),
+    aimMode: modes.aim,
+    aimText: val('aimText'),
+    algoMode: modes.algo,
+    algoText: val('algoText'),
+    sourceCode: val('sourceCode'),
+    result: val('resultText'),
+    blankPages: parseInt(val('blankPages'), 10) || 0,
+    outputs: Array.prototype.map.call(outputsWrap.querySelectorAll('.out-block'), b=>({
+      label: b.querySelector('.out-label').value,
+      content: b.querySelector('.out-content').value,
+      ok: b.querySelector('.out-ok').checked
+    })),
+    styles: {
+      globalFamily: globalFamilySel.value,
+      globalSize: val('globalSize'),
+      sections: SECTIONS.reduce((acc, s)=>{
+        acc[s.key] = {
+          family: val('sf-' + s.key),
+          size: val('ss-' + s.key)
+        };
+        return acc;
+      }, {})
+    }
+  };
+  return state;
+}
+
+function restoreState(st){
+  if(!st || typeof st !== 'object') return;
+  setVal('title', st.title);
+  setVal('expNo', st.expNo);
+  setVal('date', st.date);
+  setVal('watermark', st.watermark);
+  setVal('aimText', st.aimText);
+  setVal('algoText', st.algoText);
+  setVal('sourceCode', st.sourceCode);
+  setVal('resultText', st.result);
+  setVal('blankPages', st.blankPages == null ? 0 : st.blankPages);
+  if(st.aimMode) setMode('aim', st.aimMode);
+  if(st.algoMode) setMode('algo', st.algoMode);
+
+  outputsWrap.innerHTML = '';
+  outCount = 0;
+  (st.outputs || []).forEach(o=> addOutputBlock(o.label, o.content, !!o.ok));
+
+  if(st.styles){
+    setVal('globalFamily', st.styles.globalFamily);
+    setVal('globalSize', st.styles.globalSize);
+    SECTIONS.forEach(s=>{
+      if(st.styles.sections && st.styles.sections[s.key]){
+        setVal('sf-' + s.key, st.styles.sections[s.key].family);
+        setVal('ss-' + s.key, st.styles.sections[s.key].size);
+      }
+    });
+  }
+
+  render();
+}
+
+// ---------- autosave draft (local browser) ----------
+const DRAFT_KEY = 'record_press_draft_v2';
+let draftTimer = null;
+function scheduleAutosave(){
+  if(draftTimer) clearTimeout(draftTimer);
+  draftTimer = setTimeout(()=>{
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(collectState())); }catch(e){}
+  }, 500);
+}
+
+$('resetBtn').addEventListener('click', ()=>{
+  if(!confirm('Discard the current work and start a fresh record?')) return;
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  location.reload();
+});
+
+// ---------- export / import JSON backup ----------
+function exportJson(){
+  const name = (val('title') || 'record').replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '_');
+  const blob = new Blob([JSON.stringify(collectState(), null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
+  toast('Backup downloaded.', 'ok');
+}
+function importJson(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const st = JSON.parse(reader.result);
+      if(typeof st !== 'object' || st === null) throw new Error('bad');
+      restoreState(st);
+      toast('Backup restored into the workbench.', 'ok');
+    }catch(e){
+      toast('Invalid backup file.', 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---------- Supabase cloud ----------
+const SB_KEY = 'record_press_supabase_cfg';
+let supabase = null;
+let sbActiveId = null;
+
+const sbUrl = $('sbUrl'), sbKey = $('sbKey'), sbStatus = $('sbStatus'),
+      sbConnectBtn = $('sbConnect'), sbPanel = $('sbPanel'),
+      sbRecordName = $('sbRecordName'), sbSaveBtn = $('sbSave'),
+      sbList = $('sbList');
+
+function getSbConfig(){
+  try{ return JSON.parse(localStorage.getItem(SB_KEY) || '{}'); }catch(e){ return {}; }
+}
+function setSbStatus(text, cls){
+  sbStatus.textContent = text || '';
+  sbStatus.className = 'sb-status ' + (cls || 'off');
+}
+function showSbPanel(on){
+  sbPanel.style.display = on ? 'block' : 'none';
+}
+
+function initSupabase(){
+  const cfg = getSbConfig();
+  if(!cfg.url || !cfg.key) return false;
+  if(typeof window.supabase === 'undefined' || !window.supabase.createClient) return false;
+  supabase = window.supabase.createClient(String(cfg.url).trim(), String(cfg.key).trim());
+  return true;
+}
+
+async function testConnection(){
+  const { error } = await supabase.from('records').select('id').limit(1);
+  if(error) throw new Error('Could not reach the "records" table: ' + error.message);
+}
+
+async function connectSb(){
+  const url = sbUrl.value.trim();
+  const key = sbKey.value.trim();
+  if(!url || !key){ toast('Enter your Supabase URL and anon key first.', 'warn'); return; }
+  localStorage.setItem(SB_KEY, JSON.stringify({url: url, key: key}));
+  if(!initSupabase()){
+    setSbStatus('Supabase SDK failed to load (offline?). Reload the page and try again.', 'err');
+    toast('Supabase SDK unavailable.', 'err');
+    return;
+  }
+  sbConnectBtn.disabled = true;
+  sbConnectBtn.textContent = 'Connecting…';
+  setSbStatus('Connecting…');
+  try{
+    await testConnection();
+    showSbPanel(true);
+    setSbStatus('Connected. Your records are listed below.', 'ok');
+    await refreshSbList();
+    toast('Connected to Supabase.', 'ok');
+  }catch(e){
+    showSbPanel(false);
+    setSbStatus(esc(e.message), 'err');
+    toast('Connection failed.', 'err');
+  }finally{
+    sbConnectBtn.disabled = false;
+    sbConnectBtn.textContent = 'Connect & Save Settings';
+  }
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  try{
+    return new Date(d).toLocaleString([], {dateStyle:'medium', timeStyle:'short'});
+  }catch(e){ return String(d); }
+}
+
+async function refreshSbList(){
+  const { data, error } = await supabase
+    .from('records')
+    .select('id,name,updated_at')
+    .order('updated_at', {ascending:false})
+    .limit(100);
+  if(error) throw new Error('Failed to load records: ' + error.message);
+  sbList.innerHTML = '';
+  if(!data || !data.length){
+    const empty = document.createElement('div');
+    empty.className = 'sb-empty';
+    empty.textContent = 'No saved records yet. Fill the workbench and press "Save to cloud".';
+    sbList.appendChild(empty);
+    return;
+  }
+  data.forEach(r=>{
+    const item = document.createElement('div');
+    item.className = 'sb-item' + (sbActiveId === r.id ? ' active' : '');
+    item.innerHTML =
+      '<div class="sb-item-info">' +
+        '<div class="sb-item-name">' + esc(r.name || 'Untitled') + '</div>' +
+        '<div class="sb-item-date">' + esc(fmtDate(r.updated_at)) + '</div>' +
+      '</div>' +
+      '<div class="sb-item-actions">' +
+        '<button type="button" class="mini" data-act="load">Load</button>' +
+        '<button type="button" class="mini danger" data-act="del">Delete</button>' +
+      '</div>';
+    item.querySelector('[data-act="load"]').addEventListener('click', async ()=>{
+      try{
+        await loadSbRecord(r.id, r.name);
+      }catch(e){ toast('Load failed: ' + (e.message || e), 'err'); }
+    });
+    item.querySelector('[data-act="del"]').addEventListener('click', async ()=>{
+      if(!confirm('Delete "' + (r.name || 'Untitled') + '" from the cloud?')) return;
+      try{
+        await deleteSbRecord(r.id);
+        if(sbActiveId === r.id) sbActiveId = null;
+        await refreshSbList();
+        toast('Deleted from cloud.', 'ok');
+      }catch(e){ toast('Delete failed: ' + (e.message || e), 'err'); }
+    });
+    sbList.appendChild(item);
+  });
+}
+
+async function loadSbRecord(id, name){
+  const { data, error } = await supabase
+    .from('records')
+    .select('payload')
+    .eq('id', id)
+    .maybeSingle();
+  if(error) throw new Error(error.message);
+  if(!data) throw new Error('Record not found.');
+  restoreState(data.payload);
+  sbActiveId = id;
+  sbRecordName.value = name || '';
+  sbSaveBtn.textContent = 'Update on cloud';
+  toast('Loaded "' + (name || 'record') + '" into the workbench.', 'ok');
+}
+
+async function deleteSbRecord(id){
+  const { error } = await supabase.from('records').delete().eq('id', id);
+  if(error) throw new Error(error.message);
+}
+
+async function saveSb(){
+  if(!supabase){ toast('Connect to Supabase first.', 'warn'); return; }
+  const payload = collectState();
+  const name = sbRecordName.value.trim() || payload.title || 'Untitled';
+  const now = new Date().toISOString();
+  sbSaveBtn.disabled = true;
+  const originalLabel = sbSaveBtn.textContent;
+  sbSaveBtn.textContent = 'Saving…';
+  try{
+    if(sbActiveId){
+      const { error } = await supabase
+        .from('records')
+        .update({name: name, payload: payload, updated_at: now})
+        .eq('id', sbActiveId);
+      if(error) throw new Error(error.message);
+      toast('Updated "' + name + '" on the cloud.', 'ok');
+    }else{
+      const { data, error } = await supabase
+        .from('records')
+        .insert({name: name, payload: payload, created_at: now, updated_at: now})
+        .select()
+        .single();
+      if(error) throw new Error(error.message);
+      sbActiveId = data.id;
+      sbSaveBtn.textContent = 'Update on cloud';
+      toast('Saved "' + name + '" to the cloud.', 'ok');
+    }
+    await refreshSbList();
+  }catch(e){
+    toast('Save failed: ' + (e.message || e), 'err');
+  }finally{
+    sbSaveBtn.disabled = false;
+    sbSaveBtn.textContent = sbActiveId ? 'Update on cloud' : originalLabel;
+  }
+}
+
+async function autoConnect(){
+  for(let i = 0; i < 5; i++){
+    if(initSupabase()) break;
+    await new Promise(r=>setTimeout(r, 600));
+  }
+  if(!supabase){
+    const cfg = getSbConfig();
+    if(cfg.url && cfg.key) setSbStatus('Supabase SDK not available (offline?). Cloud features disabled.', 'err');
+    return;
+  }
+  setSbStatus('Connecting…');
+  try{
+    await testConnection();
+    showSbPanel(true);
+    setSbStatus('Connected. Your records are listed below.', 'ok');
+    await refreshSbList();
+  }catch(e){
+    showSbPanel(false);
+    setSbStatus(esc(e.message), 'err');
+  }
+}
+
+// ---------- wire events ----------
+sbConnectBtn.addEventListener('click', connectSb);
+sbSaveBtn.addEventListener('click', saveSb);
+$('exportBtn').addEventListener('click', exportJson);
+$('importBtn').addEventListener('click', ()=> $('importFile').click());
+$('importFile').addEventListener('change', e=>{
+  const f = e.target.files && e.target.files[0];
+  if(f) importJson(f);
+  e.target.value = '';
+});
+
+const LIVE_IDS = ['title','expNo','date','watermark','aimText','algoText','sourceCode','resultText','blankPages','globalFamily','globalSize'];
+LIVE_IDS.forEach(id=>{
+  const el = $(id);
   el.addEventListener('input', render);
   el.addEventListener('change', render);
 });
 SECTIONS.forEach(s=>{
-  document.getElementById('sf-'+s.key).addEventListener('change', render);
-  document.getElementById('ss-'+s.key).addEventListener('input', render);
+  $('sf-' + s.key).addEventListener('change', render);
+  $('ss-' + s.key).addEventListener('input', render);
 });
 
-document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+$('printBtn').addEventListener('click', ()=> window.print());
 
+// ---------- boot ----------
 render();
+
+// restore saved supabase config into the fields
+(function(){
+  const cfg = getSbConfig();
+  if(cfg.url) sbUrl.value = cfg.url;
+  if(cfg.key) sbKey.value = cfg.key;
+})();
+
+// restore autosaved draft if present
+(function(){
+  try{
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if(raw){
+      const st = JSON.parse(raw);
+      if(st && typeof st === 'object'){
+        restoreState(st);
+        toast('Local draft restored from this browser.', 'info');
+      }
+    }
+  }catch(e){}
+})();
+
+autoConnect();
+
+})();
 </script>
 </body>
 </html>
