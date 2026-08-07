@@ -870,6 +870,12 @@ function getContentH(){
   return Math.floor(probeContent.getBoundingClientRect().height) - 2;
 }
 
+// Vertical space taken by the first-page header (meta + title + rule + spacing).
+function getHeaderH(){
+  const meta = probe.querySelector('.meta-row');
+  return probeContent.getBoundingClientRect().top - meta.getBoundingClientRect().top;
+}
+
 // ---------- block builders ----------
 function makeRule(){
   const r = document.createElement('hr');
@@ -987,22 +993,28 @@ function splitBlock(block, contentH){
   });
 }
 
-function paginate(blocks, contentH){
+function paginate(blocks, firstH, restH){
   const pages = [];
+  let cap = firstH;
   let cur = [];
   let curUsed = 0;
   const flush = ()=>{
-    if(cur.length){ pages.push(cur); cur = []; curUsed = 0; }
+    if(cur.length){
+      pages.push(cur);
+      cur = [];
+      curUsed = 0;
+      cap = restH;
+    }
   };
   blocks.forEach(b=>{
     let items;
-    if(b.h > contentH && b.splittable){
-      items = splitBlock(b, contentH);
+    if(b.h > cap && b.splittable){
+      items = splitBlock(b, cap);
     } else {
       items = [{ make: ()=> b.el, h: b.h }];
     }
     items.forEach(it=>{
-      if(curUsed + it.h <= contentH || curUsed === 0){
+      if(curUsed + it.h <= cap || curUsed === 0){
         cur.push(it.make());
         curUsed += it.h;
       } else {
@@ -1032,23 +1044,25 @@ function buildRecordSheets(pages, totalPages){
     frame.className = 'sheet-frame';
     const inner = document.createElement('div');
     inner.className = 'sheet-inner';
-    const meta = document.createElement('div');
-    meta.className = 'meta-row';
-    meta.innerHTML = '<span>' + esc(metaExp) + '</span><span>' + esc(metaDate) + '</span>';
-    const rt = document.createElement('div');
-    rt.className = 'rec-title';
-    rt.textContent = title;
-    applyStyle(rt, 'title');
-    const rule = makeRule();
+    const isFirst = idx === 0;
     const content = document.createElement('div');
     content.className = 'page-content';
     els.forEach(e=> content.appendChild(e));
     const foot = document.createElement('div');
     foot.className = 'pagefoot';
     foot.textContent = 'Page ' + (idx + 1) + ' of ' + totalPages;
-    inner.appendChild(meta);
-    inner.appendChild(rt);
-    inner.appendChild(rule);
+    if(isFirst){
+      const meta = document.createElement('div');
+      meta.className = 'meta-row';
+      meta.innerHTML = '<span>' + esc(metaExp) + '</span><span>' + esc(metaDate) + '</span>';
+      const rt = document.createElement('div');
+      rt.className = 'rec-title';
+      rt.textContent = title;
+      applyStyle(rt, 'title');
+      inner.appendChild(meta);
+      inner.appendChild(rt);
+      inner.appendChild(makeRule());
+    }
     inner.appendChild(content);
     inner.appendChild(foot);
     frame.appendChild(inner);
@@ -1108,8 +1122,9 @@ function render(){
 
   const blankCount = Math.max(0, Math.min(20, parseInt(val('blankPages'), 10) || 0));
   const blocks = buildBlocks();
-  const contentH = getContentH();
-  const pages = paginate(blocks, contentH);
+  const firstH = getContentH();
+  const restH = firstH + getHeaderH();
+  const pages = paginate(blocks, firstH, restH);
   const totalPages = pages.length + blankCount;
   const recSheets = buildRecordSheets(pages, totalPages);
   recSheets.forEach(s=> press.appendChild(s));
